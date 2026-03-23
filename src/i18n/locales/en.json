@@ -1,0 +1,17 @@
+﻿{
+  "auth": {
+    "secure_gateway": "Secure Gateway",
+    "phone_label": "Global Identity: Phone",
+    "phone_placeholder": "Enter phone number",
+    "password_label": "Security Key",
+    "forgot_password": "Forgot?",
+    "btn_login": "AUTHENTICATE",
+    "btn_register": "CREATE ACCOUNT",
+    "switch_to_register": "Don't have an account? Register",
+    "switch_to_login": "Already have an account? Login",
+    "join": "Join",
+    "register_subtitle": "Create your secure identity",
+    "full_name_label": "Full Name",
+    "email_label": "Email Address"
+  }
+}

@@ -1,14 +1,16 @@
 ﻿import axios from 'axios';
+
 export const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'https://localhost:7001/api',
+    baseURL: import.meta.env.VITE_API_URL || 'https://localhost:61799/api/v1',
     headers: {
         'Content-Type': 'application/json',
     },
-    timeout: 10000, 
+    timeout: 10000,
 });
+const TOKEN_KEY = '@PhiloMessaging:token';
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('@PhiloMessaging:token');
+        const token = localStorage.getItem(TOKEN_KEY);
 
         if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -31,8 +33,14 @@ api.interceptors.response.use(
             error.response?.data || error.message
         );
         if (error.response?.status === 401 && !originalRequest._retry) {
-            console.warn('Sessão expirada ou Token inválido. Redirecionando...');
+            console.warn('Sessão expirada ou Token inválido. Limpando credenciais...');
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem('@PhiloMessaging:user');
+            if (typeof window !== 'undefined') {
+                window.location.href = '/login';
+            }
         }
-        return Promise.reject(error);
+        const errorMessage = error.response?.data?.message || error.message;
+        return Promise.reject(new Error(errorMessage));
     }
 );

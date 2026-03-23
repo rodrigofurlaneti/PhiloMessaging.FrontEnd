@@ -1,0 +1,17 @@
+﻿{
+  "auth": {
+    "secure_gateway": "Portale Sicuro",
+    "phone_label": "Identità Globale: Telefono",
+    "phone_placeholder": "Inserisci il numero",
+    "password_label": "Chiave di Sicurezza",
+    "forgot_password": "Dimenticata?",
+    "btn_login": "AUTENTICARE",
+    "btn_register": "CREA ACCOUNT",
+    "switch_to_register": "Non hai un account? Registrati",
+    "switch_to_login": "Hai già un account? Accedi",
+    "join": "Unisciti a",
+    "register_subtitle": "Crea la tua identità sicura",
+    "full_name_label": "Nome Completo",
+    "email_label": "Indirizzo E-mail"
+  }
+}
