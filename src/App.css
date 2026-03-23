@@ -1,0 +1,307 @@
+﻿@import "tailwindcss";
+
+/* 1. CONFIGURAÇÃO DE TEMA PHILO (Tailwind v4) */
+@theme {
+    --color-philo-bg: #0b141a;
+    --color-philo-card: #1f2c33;
+    --color-philo-input: #2a3942;
+    --color-philo-primary: #10b981;
+    --color-philo-accent: #00a884;
+    --animate-fade-in: fadeIn 0.8s ease-out;
+
+    @keyframes fadeIn {
+        0% {
+            opacity: 0;
+            transform: translateY(12px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+
+/* 2. VARIÁVEIS E RESET (Mantendo a compatibilidade original) */
+:root {
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+    color-scheme: dark; /* Força o navegador a entender que o contexto é escuro */
+    color: rgba(255, 255, 255, 0.87);
+    background-color: #0b141a;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    --accent: #10b981;
+    --accent-bg: rgba(16, 185, 129, 0.1);
+    --accent-border: rgba(16, 185, 129, 0.4);
+    --border: rgba(255, 255, 255, 0.1);
+    --text-h: #e9edef;
+    --social-bg: #2a3942;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* 3. CENTRALIZAÇÃO DEFINITIVA (FORÇA BRUTA) */
+html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: #0b141a !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+}
+
+#root {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* 4. CORREÇÃO DE INPUTS E SELECTS (Dropdown Dark) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #e9edef !important;
+    -webkit-box-shadow: 0 0 0px 1000px #2a3942 inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+input {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    color: #e9edef !important;
+    box-shadow: none !important;
+    appearance: none;
+}
+
+.PhoneInputCountrySelect {
+    background-color: #2a3942 !important;
+    color: #10b981 !important; /* Cor verde para o código selecionado */
+}
+
+/* Força as opções do dropdown a ficarem escuras em navegadores Chromium */
+select option {
+    background-color: #1f2c33 !important; /* Cor do Card */
+    color: #ffffff !important;
+    padding: 10px;
+}
+
+/* 5. TODAS AS LINHAS ORIGINAIS DO VITE (MANTIDAS) */
+.counter {
+    font-size: 16px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: var(--accent);
+    background: var(--accent-bg);
+    border: 2px solid transparent;
+    transition: border-color 0.3s;
+    margin-bottom: 24px;
+    &:hover
+
+{
+    border-color: var(--accent-border);
+}
+
+&:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+}
+
+.hero {
+    position: relative;
+    .base, .framework, .vite
+
+{
+    inset-inline: 0;
+    margin: 0 auto;
+}
+
+.base {
+    width: 170px;
+    position: relative;
+    z-index: 0;
+}
+
+.framework, .vite {
+    position: absolute;
+}
+
+.framework {
+    z-index: 1;
+    top: 34px;
+    height: 28px;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg) scale(1.4);
+}
+
+.vite {
+    z-index: 0;
+    top: 107px;
+    height: 26px;
+    width: auto;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg) scale(0.8);
+}
+
+}
+
+#center {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    place-content: center;
+    place-items: center;
+    flex-grow: 1;
+
+    @media (max-width: 1024px) {
+        padding: 32px 20px 24px;
+        gap: 18px;
+    }
+}
+
+#next-steps {
+    display: flex;
+    border-top: 1px solid var(--border);
+    text-align: left;
+    & > div
+
+{
+    flex: 1 1 0;
+    padding: 32px;
+
+    @media (max-width: 1024px) {
+        padding: 24px 20px;
+    }
+}
+
+.icon {
+    margin-bottom: 16px;
+    width: 22px;
+    height: 22px;
+}
+
+@media (max-width: 1024px) {
+    flex-direction: column;
+    text-align: center;
+}
+
+}
+
+#docs {
+    border-right: 1px solid var(--border);
+
+    @media (max-width: 1024px) {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+}
+
+#next-steps ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    gap: 8px;
+    margin: 32px 0 0;
+    .logo
+
+{
+    height: 18px;
+}
+
+a {
+    color: var(--text-h);
+    font-size: 16px;
+    border-radius: 6px;
+    background: var(--social-bg);
+    display: flex;
+    padding: 6px 12px;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: box-shadow 0.3s;
+    &:hover
+
+{
+    box-shadow: var(--shadow);
+}
+
+.button-icon {
+    height: 18px;
+    width: 18px;
+}
+
+}
+
+@media (max-width: 1024px) {
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    li {
+        flex: 1 1 calc(50% - 8px);
+    }
+
+    a {
+        width: 100%;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+}
+
+}
+
+#spacer {
+    height: 88px;
+    border-top: 1px solid var(--border);
+
+    @media (max-width: 1024px) {
+        height: 48px;
+    }
+}
+
+.ticks {
+    position: relative;
+    width: 100%;
+    &::before, &::after
+
+{
+    content: '';
+    position: absolute;
+    top: -4.5px;
+    border: 5px solid transparent;
+}
+
+&::before {
+    left: 0;
+    border-left-color: var(--border);
+}
+
+&::after {
+    right: 0;
+    border-right-color: var(--border);
+}
+
+}
+
+/* Customização Final do PhoneInput */
+.PhoneInput {
+    --PhoneInputCountryFlag-borderColor: transparent;
+    --PhoneInputCountrySelectArrow-color: #10b981;
+    gap: 12px;
+}
+
+.PhoneInputInput {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    color: #e9edef !important;
+    font-size: 1rem;
+    padding: 1rem 0 !important;
+}
