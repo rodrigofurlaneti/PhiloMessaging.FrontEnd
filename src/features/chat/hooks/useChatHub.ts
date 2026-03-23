@@ -1,43 +1,119 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect, useRef } from 'react';
 import * as signalR from '@microsoft/signalr';
 import { useAuth } from '../context/AuthContext';
+import { useChatStore } from '@/store/useChatStore';
+import type { MessageDto } from '../types';
 
+const HUB_URL = import.meta.env.VITE_HUB_URL || 'https://localhost:61799/chatHub';
+
+/**
+ * useChatHub — Gerencia a conexão SignalR com o ChatHub do Backend.
+ *
+ * Integrado ao useChatStore para:
+ * - Receber mensagens em tempo real → appendIncomingMessage
+ * - Atualizar status de entrega (message_receipts)
+ * - Indicar presença/online de outros usuários
+ * - Notificar sobre mensagens deletadas
+ *
+ * Events do Hub esperados:
+ * - "ReceiveMessage"       → nova mensagem recebida
+ * - "MessageDeleted"       → mensagem apagada para todos
+ * - "UserOnline"           → usuário ficou online
+ * - "UserOffline"          → usuário ficou offline
+ * - "MessageDelivered"     → confirmação de entrega
+ * - "MessageRead"          → confirmação de leitura
+ */
 export const useChatHub = () => {
-    const { user } = useAuth(); // Mantemos o user para monitorar o estado de autenticação
-    const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
+  const { user } = useAuth();
+  const connectionRef = useRef<signalR.HubConnection | null>(null);
 
-    useEffect(() => {
-        // Se não houver usuário ou token, não tentamos conectar
-        const token = localStorage.getItem('@PhiloMessaging:token');
-        if (!token || !user) return;
+  const appendIncomingMessage = useChatStore(state => state.appendIncomingMessage);
+  const markMessageDeleted = useChatStore(state => state.markMessageDeleted);
+  const setHubConnected = useChatStore(state => state.setHubConnected);
 
-        const newConnection = new signalR.HubConnectionBuilder()
-            .withUrl("https://localhost:61799/chatHub", {
-                accessTokenFactory: () => token
-            })
-            .withAutomaticReconnect()
-            .build();
+  useEffect(() => {
+    const token = localStorage.getItem('@PhiloMessaging:token');
+    if (!token || !user) return;
 
-        setConnection(newConnection);
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(HUB_URL, {
+        accessTokenFactory: () => localStorage.getItem('@PhiloMessaging:token') ?? '',
+      })
+      .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+      .configureLogging(signalR.LogLevel.Warning)
+      .build();
 
-        // Cleanup: Desconecta quando o componente for destruído ou o usuário deslogar
-        return () => {
-            if (newConnection) {
-                newConnection.stop();
-            }
-        };
-    }, [user]); // Adicionamos 'user' aqui para o TS entender que ele é lido para decidir a conexão
+    connectionRef.current = connection;
 
-    useEffect(() => {
-        if (connection && connection.state === signalR.HubConnectionState.Disconnected) {
-            connection.start()
-                .then(() => {
-                    // Agora usamos o 'user' para um log útil, resolvendo o erro TS6133
-                    console.log(`Conectado ao Philo Hub como: ${user?.displayName}`);
-                })
-                .catch(err => console.error('Erro na conexão SignalR: ', err));
-        }
-    }, [connection, user]);
+    // ── Handlers de Eventos do Hub ──────────────────────────────────────────
 
-    return connection;
+    /** Nova mensagem recebida em tempo real */
+    connection.on('ReceiveMessage', (message: MessageDto) => {
+      console.log('[SignalR] ReceiveMessage:', message);
+      appendIncomingMessage(message);
+    });
+
+    /** Mensagem apagada para todos — Backend DeleteMessage SAGA concluída */
+    connection.on('MessageDeleted', (chatId: number, messageId: number) => {
+      console.log('[SignalR] MessageDeleted:', { chatId, messageId });
+      markMessageDeleted(chatId, messageId);
+    });
+
+    /** Usuário ficou online */
+    connection.on('UserOnline', (userId: number) => {
+      console.log('[SignalR] UserOnline:', userId);
+    });
+
+    /** Usuário ficou offline */
+    connection.on('UserOffline', (userId: number) => {
+      console.log('[SignalR] UserOffline:', userId);
+    });
+
+    /** Confirmação de entrega de mensagem (✓✓ cinza) */
+    connection.on('MessageDelivered', (messageId: number) => {
+      console.log('[SignalR] MessageDelivered:', messageId);
+    });
+
+    /** Confirmação de leitura (✓✓ azul) */
+    connection.on('MessageRead', (messageId: number, userId: number) => {
+      console.log('[SignalR] MessageRead:', { messageId, userId });
+    });
+
+    // ── Reconexão ────────────────────────────────────────────────────────────
+    connection.onreconnecting(() => {
+      console.log('[SignalR] Reconectando...');
+      setHubConnected(false);
+    });
+
+    connection.onreconnected(() => {
+      console.log('[SignalR] Reconectado com sucesso.');
+      setHubConnected(true);
+    });
+
+    connection.onclose(() => {
+      console.log('[SignalR] Conexão encerrada.');
+      setHubConnected(false);
+    });
+
+    // ── Iniciar Conexão ───────────────────────────────────────────────────────
+    connection
+      .start()
+      .then(() => {
+        console.log(`[SignalR] Conectado ao Philo Hub como: ${user.displayName}`);
+        setHubConnected(true);
+      })
+      .catch(err => {
+        console.error('[SignalR] Erro na conexão:', err);
+        setHubConnected(false);
+      });
+
+    return () => {
+      connection.stop();
+      connectionRef.current = null;
+      setHubConnected(false);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.userId]);
+
+  return connectionRef.current;
 };
