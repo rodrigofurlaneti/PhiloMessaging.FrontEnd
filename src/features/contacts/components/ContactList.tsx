@@ -1,9 +1,12 @@
 ﻿import { useContacts } from '../hooks/useContacts';
 import { ContactItem } from './ContactItem';
-import { Loader2 } from 'lucide-react'; // Import para manter o padrão visual
+import { Loader2 } from 'lucide-react';
+import { useChatStore } from '../../../store/useChatStore';
 
 export const ContactList = () => {
     const { contacts, isLoading } = useContacts();
+    const setSelectedContact = useChatStore((state) => state.setSelectedContact);
+    const selectedContactId = useChatStore((state) => state.selectedContact?.contactUserId);
 
     if (isLoading) {
         return (
@@ -35,8 +38,11 @@ export const ContactList = () => {
                     <ContactItem
                         key={contact.id}
                         contact={contact}
-                        // Aqui você conectará a lógica de abrir a conversa no futuro
-                        onSelect={(id) => console.log("Iniciando handshake com:", id)}
+                        isActive={selectedContactId === contact.contactUserId}
+                        onSelect={() => {
+                            console.log("Selecionando contato para preview:", contact.displayName);
+                            setSelectedContact(contact); 
+                        }}
                     />
                 ))
             )}

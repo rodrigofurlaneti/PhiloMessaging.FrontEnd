@@ -1,4 +1,9 @@
 ﻿{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "error": "An error occurred"
+  },
   "auth": {
     "secure_gateway": "Secure Gateway",
     "phone_label": "Global Identity: Phone",
@@ -13,9 +18,22 @@
     "register_subtitle": "Create your secure identity",
     "full_name_label": "Full Name",
     "email_label": "Email Address",
-    "search_placeholder": "Search identity...",
     "status_active": "Active",
-    "type_message": "Type a secure message...",
     "logout": "Sign Out"
+  },
+  "chat": {
+    "search_placeholder": "Search identity...",
+    "type_placeholder": "Type a secure message...",
+    "no_conversations": "No active conversations found.",
+    "encrypted_tag": "E2E Encrypted",
+    "welcome_message": "Hello <bold>{{name}}</bold>, welcome to the Philo encrypted network."
+  },
+  "contacts": {
+    "title": "Contacts",
+    "add_title": "Add New Contact",
+    "nickname_label": "Nickname (Optional)",
+    "btn_add": "Add Contact",
+    "identified_count": "Identified Contacts",
+    "empty_state": "Your Philo network is empty."
   }
 }
