@@ -1,8 +1,9 @@
 ﻿export type ChatType = 'Private' | 'Group' | 'Broadcast';
+// Espelha o enum ChatType do Backend C#: Private=1, Group=2, Broadcast=3
 export const ChatTypeValues = {
-    Private: 0,
-    Group: 1,
-    Broadcast: 2
+    Private: 1,
+    Group: 2,
+    Broadcast: 3,
 } as const;
 export interface ChatDto {
     id: number;

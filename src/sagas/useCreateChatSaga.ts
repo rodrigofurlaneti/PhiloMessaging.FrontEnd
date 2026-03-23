@@ -87,7 +87,7 @@ export const useCreateChatSaga = (options: UseCreateChatSagaOptions = {}) => {
       let newChat: ChatDto;
       try {
         newChat = await chatApi.createChat({
-          type: 0, // ChatType.Private = 0
+          type: 1, // ChatType.Private = 1 (backend: Private=1, Group=2, Broadcast=3)
           name: contactName,
           initialMemberIds: [contactUserId],
         });

@@ -44,6 +44,7 @@ export const ChatShell = () => {
 
   const [isAddContactOpen, setIsAddContactOpen] = useState(false);
   const [isJoinGroupOpen, setIsJoinGroupOpen] = useState(false);
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [joinToken, setJoinToken] = useState('');
   const [view, setView] = useState<'chats' | 'contacts'>('chats');
   const [input, setInput] = useState('');
@@ -160,6 +161,15 @@ export const ChatShell = () => {
     if (file) handleFileUpload(file);
     e.target.value = '';
   };
+
+  /** Abre o file input com o filtro correto para cada tipo de anexo */
+  const handleAttachSelect = useCallback((accept: string) => {
+    setShowAttachMenu(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.accept = accept;
+      fileInputRef.current.click();
+    }
+  }, []);
 
   const isSending = sendMessageSaga.isRunning || uploadingMedia;
   const filteredChats = chats.filter(c =>
@@ -297,10 +307,12 @@ export const ChatShell = () => {
             input={input}
             isSending={isSending}
             uploadingMedia={uploadingMedia}
+            showAttachMenu={showAttachMenu}
+            onToggleAttachMenu={() => setShowAttachMenu(prev => !prev)}
+            onAttachSelect={handleAttachSelect}
             onInputChange={setInput}
             onSend={handleSendMessage}
             onDelete={handleDeleteMessage}
-            onAttachClick={() => fileInputRef.current?.click()}
           />
         ) : selectedContact ? (
           <HandshakeView
@@ -331,6 +343,42 @@ export const ChatShell = () => {
 // Sub-componentes
 // ─────────────────────────────────────────────────────────────────────────────
 
+/** Opções do menu de anexo estilo WhatsApp */
+const ATTACH_OPTIONS = [
+  {
+    label: 'Documento',
+    accept: '.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar',
+    icon: FileText,
+    color: 'bg-blue-600/80',
+    border: 'border-blue-500/40',
+    text: 'text-blue-200',
+  },
+  {
+    label: 'Imagem',
+    accept: 'image/*',
+    icon: Image,
+    color: 'bg-emerald-600/80',
+    border: 'border-emerald-500/40',
+    text: 'text-emerald-200',
+  },
+  {
+    label: 'Áudio',
+    accept: 'audio/*',
+    icon: Mic,
+    color: 'bg-amber-600/80',
+    border: 'border-amber-500/40',
+    text: 'text-amber-200',
+  },
+  {
+    label: 'Vídeo',
+    accept: 'video/*',
+    icon: Video,
+    color: 'bg-rose-600/80',
+    border: 'border-rose-500/40',
+    text: 'text-rose-200',
+  },
+] as const;
+
 interface ChatViewProps {
   chatName: string;
   chatAvatarUrl?: string;
@@ -341,16 +389,19 @@ interface ChatViewProps {
   input: string;
   isSending: boolean;
   uploadingMedia: boolean;
+  showAttachMenu: boolean;
+  onToggleAttachMenu: () => void;
+  onAttachSelect: (accept: string) => void;
   onInputChange: (v: string) => void;
   onSend: () => void;
   onDelete: (msg: AnyMessage) => void;
-  onAttachClick: () => void;
 }
 
 const ChatView = ({
   chatName, chatAvatarUrl, messages, messagesLoading, messagesEndRef,
   currentUserId, input, isSending, uploadingMedia,
-  onInputChange, onSend, onDelete, onAttachClick,
+  showAttachMenu, onToggleAttachMenu, onAttachSelect,
+  onInputChange, onSend, onDelete,
 }: ChatViewProps) => {
   const [hoveredMsgId, setHoveredMsgId] = useState<number | null>(null);
 
@@ -453,22 +504,67 @@ const ChatView = ({
 
       {/* Input de Mensagem */}
       <footer className="p-6 bg-black/40 border-t border-white/5 shrink-0">
-        <div className="max-w-4xl mx-auto flex items-center gap-4 bg-white/5 rounded-2xl p-2 border border-white/10 focus-within:border-cyan-500/30 transition-all">
-          <button className="p-3 text-gray-500 hover:text-cyan-400 transition-colors"
-            onClick={onAttachClick} disabled={uploadingMedia} title="Enviar arquivo">
-            {uploadingMedia
-              ? <Loader2 size={20} className="animate-spin text-cyan-400" />
-              : <Paperclip size={20} />}
-          </button>
-          <input className="flex-1 bg-transparent outline-none text-sm p-2 text-gray-200 placeholder:text-gray-600"
-            placeholder="Mensagem criptografada..."
-            value={input} onChange={e => onInputChange(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend(); } }}
-            disabled={isSending} />
-          <button onClick={onSend} disabled={isSending || !input.trim()}
-            className="p-3 bg-cyan-500 text-black rounded-xl hover:bg-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all active:scale-95 disabled:opacity-50">
-            {isSending ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
-          </button>
+        <div className="max-w-4xl mx-auto relative">
+
+          {/* ── Menu de Anexo estilo WhatsApp ──────────────────────────── */}
+          {showAttachMenu && (
+            <div className="absolute bottom-full mb-3 left-0 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+              <div className="bg-[#111] border border-white/10 rounded-2xl p-4 shadow-2xl shadow-black/60">
+                <div className="grid grid-cols-4 gap-3">
+                  {ATTACH_OPTIONS.map(opt => {
+                    const Icon = opt.icon;
+                    return (
+                      <button
+                        key={opt.label}
+                        onClick={() => onAttachSelect(opt.accept)}
+                        className={`flex flex-col items-center gap-2 p-3 rounded-xl border ${opt.border} ${opt.color} hover:opacity-90 active:scale-95 transition-all w-20`}
+                      >
+                        <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                          <Icon size={20} className={opt.text} />
+                        </div>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider ${opt.text}`}>
+                          {opt.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              {/* Seta apontando para baixo */}
+              <div className="w-3 h-3 bg-[#111] border-r border-b border-white/10 rotate-45 ml-5 -mt-1.5" />
+            </div>
+          )}
+
+          {/* ── Barra de Input ─────────────────────────────────────────── */}
+          <div className="flex items-center gap-4 bg-white/5 rounded-2xl p-2 border border-white/10 focus-within:border-cyan-500/30 transition-all">
+            <button
+              className={`p-3 transition-colors relative ${showAttachMenu ? 'text-cyan-400' : 'text-gray-500 hover:text-cyan-400'}`}
+              onClick={onToggleAttachMenu}
+              disabled={uploadingMedia}
+              title="Anexar arquivo"
+            >
+              {uploadingMedia
+                ? <Loader2 size={20} className="animate-spin text-cyan-400" />
+                : <Paperclip size={20} className={showAttachMenu ? 'rotate-45 transition-transform duration-200' : 'transition-transform duration-200'} />
+              }
+            </button>
+            <input
+              className="flex-1 bg-transparent outline-none text-sm p-2 text-gray-200 placeholder:text-gray-600"
+              placeholder="Mensagem criptografada..."
+              value={input}
+              onChange={e => onInputChange(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend(); } }}
+              disabled={isSending}
+              onClick={() => { if (showAttachMenu) onToggleAttachMenu(); }}
+            />
+            <button
+              onClick={onSend}
+              disabled={isSending || !input.trim()}
+              className="p-3 bg-cyan-500 text-black rounded-xl hover:bg-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all active:scale-95 disabled:opacity-50"
+            >
+              {isSending ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
+            </button>
+          </div>
         </div>
       </footer>
     </div>

@@ -1,4 +1,4 @@
-﻿import { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { generateId as uuidv4 } from './uuid';
 import { chatApi } from '@/features/chat/api/chatApi';
 import type { AnyMessage, OptimisticMessage } from '@/features/chat/types';
@@ -11,9 +11,13 @@ import {
 interface UseSendMessageSagaOptions {
   chatId: number;
   senderId: number;
+  /** Callback para adicionar mensagem otimista no estado local */
   onOptimisticAdd?: (msg: OptimisticMessage) => void;
+  /** Callback para confirmar mensagem (substitui otimista pelo real) */
   onConfirm?: (tempId: string, realMessage: AnyMessage) => void;
+  /** Callback para remover mensagem otimista em caso de falha (compensação) */
   onCompensate?: (tempId: string) => void;
+  /** Callback ao concluir para atualizar feed */
   onRefreshFeed?: () => void | Promise<void>;
 }
 
@@ -33,6 +37,21 @@ const initialState = (): SendMessageSagaState => ({
   sagaResultMessageId: null,
 });
 
+/**
+ * useSendMessageSaga
+ *
+ * Implementa o padrão SAGA no Frontend para envio de mensagens,
+ * espelhando o SendMessageSaga do Backend C#.
+ *
+ * Passos:
+ * 1. ValidateInput   — valida dados localmente antes de chamar a API
+ * 2. CallApi         — chama POST /chats/{chatId}/messages (Backend SAGA)
+ * 3. OptimisticUpdate— aplica mensagem otimista / confirma no estado local
+ * 4. RefreshFeed     — atualiza o feed de conversas
+ * 5. Completed
+ *
+ * Compensação: remove a mensagem otimista se a API falhar.
+ */
 export const useSendMessageSaga = (options: UseSendMessageSagaOptions) => {
   const { chatId, senderId, onOptimisticAdd, onConfirm, onCompensate, onRefreshFeed } = options;
   const [sagaState, setSagaState] = useState<SendMessageSagaState>(initialState());
