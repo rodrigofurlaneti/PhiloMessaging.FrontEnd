@@ -1,6 +1,7 @@
 ﻿export interface LoginCommand {
     phoneNumber: string;
-    password?: string;
+    countryCode: string; 
+    password: string;
 }
 
 export interface RegisterRequest {
@@ -29,11 +30,11 @@ export interface RegisterCommand {
     username?: string;
 }
 export interface AuthResponseDto {
-    id: number;
+    userId: number;        
     displayName: string;
     phoneNumber: string;
     countryCode: string;
-    token: string;
+    accessToken: string; 
     refreshToken: string;
     expiresAt: string;
 }

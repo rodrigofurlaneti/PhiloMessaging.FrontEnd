@@ -12,6 +12,10 @@
     "join": "Unisciti a",
     "register_subtitle": "Crea la tua identità sicura",
     "full_name_label": "Nome Completo",
-    "email_label": "Indirizzo E-mail"
+    "email_label": "Indirizzo E-mail",
+    "search_placeholder": "Cerca identità...",
+    "status_active": "Attivo",
+    "type_message": "Scrivi un messaggio sicuro...",
+    "logout": "Disconnettersi"
   }
 }

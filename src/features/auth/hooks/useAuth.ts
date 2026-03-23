@@ -15,7 +15,7 @@ export const useAuth = () => {
         setError(null);
         try {
             const response = await authApi.login(command);
-            localStorage.setItem(TOKEN_KEY, response.token);
+            localStorage.setItem(TOKEN_KEY, response.accessToken);
             localStorage.setItem(USER_KEY, JSON.stringify(response));
             setUser(response);
             return response;

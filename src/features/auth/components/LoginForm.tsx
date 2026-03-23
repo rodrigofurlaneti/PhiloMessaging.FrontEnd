@@ -1,9 +1,9 @@
 ﻿import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Lock, ShieldCheck, Loader2, ArrowRight } from 'lucide-react';
-import PhoneInput from 'react-phone-number-input';
-import { useTranslation } from 'react-i18next'; // 1. Importar o hook de tradução
-import { LanguageSelector } from '@/components/ui/LanguageSelector'; // 2. Importar seu novo seletor
+import PhoneInput, { parsePhoneNumber } from 'react-phone-number-input'; 
+import { useTranslation } from 'react-i18next';
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import 'react-phone-number-input/style.css';
 
 interface LoginFormProps {
@@ -11,23 +11,33 @@ interface LoginFormProps {
 }
 
 export const LoginForm = ({ onToggleRegister }: LoginFormProps) => {
-    const { t } = useTranslation(); // 3. Inicializar a função de tradução 't'
+    const { t } = useTranslation();
     const { login, isLoading, error } = useAuth();
     const [password, setPassword] = useState('');
     const [value, setValue] = useState<string | undefined>();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
         if (value && password) {
-            await login({ phoneNumber: value, password });
+            const phoneNumberData = parsePhoneNumber(value);
+            if (phoneNumberData) {
+                await login({
+                    phoneNumber: phoneNumberData.nationalNumber as string,
+                    countryCode: `+${phoneNumberData.countryCallingCode}`,
+                    password
+                });
+            } else {
+                alert("Please enter a valid phone number.");
+            }
         }
     };
 
     return (
         <div className="flex flex-col items-center w-full max-w-md animate-fade-in">
 
-            {/* 4. Posicionamento do Seletor de Idiomas */}
-            <LanguageSelector />
+            {/* Seletor de Idiomas */}
+            <LanguageSelector variant="horizontal" />
 
             {/* Header / Logo */}
             <div className="mb-10 text-center">
@@ -38,7 +48,7 @@ export const LoginForm = ({ onToggleRegister }: LoginFormProps) => {
                     Philo<span className="text-philo-primary">Messaging</span>
                 </h1>
                 <p className="text-gray-500 text-sm font-medium uppercase tracking-[0.3em] mt-2">
-                    {t('auth.secure_gateway')} {/* Tradução do subtítulo */}
+                    {t('auth.secure_gateway')}
                 </p>
             </div>
 

@@ -12,6 +12,10 @@
     "join": "加入",
     "register_subtitle": "創建您的安全身份",
     "full_name_label": "全名",
-    "email_label": "電子郵件地址"
+    "email_label": "電子郵件地址",
+    "search_placeholder": "搜索身份...",
+    "status_active": "活躍",
+    "type_message": "輸入安全消息...",
+    "logout": "登出"
   }
 }

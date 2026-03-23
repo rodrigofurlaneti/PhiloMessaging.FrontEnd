@@ -12,6 +12,10 @@
     "join": "Participe do",
     "register_subtitle": "Crie sua identidade segura",
     "full_name_label": "Nome Completo",
-    "email_label": "Endereço de E-mail"
+    "email_label": "Endereço de E-mail",
+    "search_placeholder": "Procurar identidade...",
+    "status_active": "Ativo",
+    "type_message": "Digite uma mensagem segura...",
+    "logout": "Sair da Sessão"
   }
 }

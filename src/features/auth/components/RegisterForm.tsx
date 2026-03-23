@@ -44,7 +44,7 @@ export const RegisterForm = ({ onToggleLogin }: RegisterFormProps) => {
         <div className="flex flex-col items-center w-full max-w-md animate-fade-in">
 
             {/* Seletor de Idiomas no topo do formulário */}
-            <LanguageSelector />
+            <LanguageSelector variant="horizontal" />
 
             <div className="mb-8 text-center">
                 <div className="inline-flex p-4 rounded-3xl bg-philo-primary/10 mb-4 border border-philo-primary/20">

@@ -12,6 +12,10 @@
     "join": "Join",
     "register_subtitle": "Create your secure identity",
     "full_name_label": "Full Name",
-    "email_label": "Email Address"
+    "email_label": "Email Address",
+    "search_placeholder": "Search identity...",
+    "status_active": "Active",
+    "type_message": "Type a secure message...",
+    "logout": "Sign Out"
   }
 }
