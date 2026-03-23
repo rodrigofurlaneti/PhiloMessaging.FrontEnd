@@ -1,0 +1,21 @@
+﻿{
+  "auth": {
+    "secure_gateway": "Portal Seguro",
+    "phone_label": "Identidad Global: Teléfono",
+    "phone_placeholder": "Ingrese el teléfono",
+    "password_label": "Clave de Seguridad",
+    "forgot_password": "¿Olvidó?",
+    "btn_login": "AUTENTICAR",
+    "btn_register": "CREAR CUENTA",
+    "switch_to_register": "¿No tienes cuenta? Regístrate",
+    "switch_to_login": "¿Ya tienes cuenta? Entrar",
+    "join": "Únete a",
+    "register_subtitle": "Crea tu identidad segura",
+    "full_name_label": "Nombre Completo",
+    "email_label": "Correo Electrónico",
+    "search_placeholder": "Buscar identidad...",
+    "status_active": "Activo",
+    "type_message": "Escribe un mensaje seguro...",
+    "logout": "Cerrar Sesión"
+  }
+}

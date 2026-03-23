@@ -1,0 +1,21 @@
+﻿{
+  "auth": {
+    "secure_gateway": "安全網關",
+    "phone_label": "全球身份：電話",
+    "phone_placeholder": "輸入電話號碼",
+    "password_label": "安全密鑰",
+    "forgot_password": "忘記了？",
+    "btn_login": "認證",
+    "btn_register": "創建帳戶",
+    "switch_to_register": "沒有帳戶？註冊",
+    "switch_to_login": "已有帳戶？登錄",
+    "join": "加入",
+    "register_subtitle": "創建您的安全身份",
+    "full_name_label": "全名",
+    "email_label": "電子郵件地址",
+    "search_placeholder": "搜索身份...",
+    "status_active": "活躍",
+    "type_message": "輸入安全消息...",
+    "logout": "登出"
+  }
+}

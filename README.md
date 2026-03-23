@@ -1,73 +1,90 @@
-# React + TypeScript + Vite
+﻿# PhiloMessaging - Frontend 🛡️
+## O PhiloMessaging é a interface de uma plataforma de comunicação ultra-segura, focada em privacidade e performance. Este frontend foi construído seguindo os mais altos padrões de engenharia de software, garantindo uma experiência Real-time e Multi-idioma.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# 🏗️ Arquitetura do Projeto
+## O projeto utiliza a estratégia de Feature-Based Architecture (Arquitetura baseada em funcionalidades). Diferente da estrutura clássica por "tipo de arquivo", aqui organizamos o código pelo que ele faz.
 
-Currently, two official plugins are available:
+# Estrutura de Pastas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### src/
+### ├── assets/             # Recursos estáticos (estilos globais, grids)
+### ├── components/         # Componentes UI Genéricos (Buttons, Modals, Inputs)
+### ├── features/           # Núcleo da aplicação (Onde a mágica acontece)
+### │   ├── auth/           # Login, Registro e Contexto de Identidade
+### │   ├── chat/           # Shell Principal, Feed de Conversas, SignalR
+### │   └── contacts/       # Gestão de Contatos, Busca por Telefone (LibPhoneNumber)
+### ├── hooks/              # Hooks globais utilitários
+### ├── i18n/               # Configurações de Internacionalização (i18next)
+### └── services/           # Configuração base de API (Axios Interceptors)
 
-## React Compiler
+## Por que essa arquitetura?
+### Isolamento: Alterações na feature de contacts não quebram o chat.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Escalabilidade: Facilita o trabalho em equipe, onde cada dev pode focar em uma feature completa (do Hook ao Componente).
 
-## Expanding the ESLint configuration
+### Barrel Exports: Uso intensivo de arquivos index.ts para expor apenas o necessário de cada feature.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+# 🛠️ Tech Stack & Skills
+## Este projeto demonstra proficiência nas seguintes tecnologias:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## React 18 & TypeScript: Tipagem estrita em todo o fluxo de dados.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Vite: Tooling de próxima geração para um HMR (Hot Module Replacement) instantâneo.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Tailwind CSS: Estilização baseada em utilitários com foco em Design System Dark.
+
+## SignalR (Client): Integração para mensagens e notificações em tempo real.
+
+## i18next: Sistema robusto de tradução dinâmica (PT/EN).
+
+## React Phone Number Input: Validação de identidades globais seguindo o padrão E.164.
+
+## 🔄 Fluxos Principais (Flows)
+## 1. Identidade Global (Add Contact)
+## Diferente de sistemas legados, o PhiloMessaging utiliza o Telefone Internacional como chave primária de busca.
+## Fluxo: O usuário digita o número no Front -> O sistema faz o parse (DDI + Número) -> O Backend valida a existência na rede Philo -> Vínculo é criado via ID indexado no MySQL.
+
+## 2. Handshake de Autenticação
+## Persistência de estado via AuthContext.
+
+## Proteção de rotas com AppContent condicional.
+
+## Interceptors de API para injeção automática de Bearer Tokens.
+
+## 🚀 Como Executar
+## Pré-requisitos
+## Node.js (v18+)
+
+## Gerenciador de pacotes (NPM ou PNPM)
+
+## Instalação
+## Clone o repositório:
+
+```
+git clone https://github.com/seu-usuario/PhiloMessaging.FrontEnd.git
+```
+## Instale as dependências:
+
+```
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Configure o .env:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Snippet de código
+## VITE_API_URL=https://localhost:61799/api/v1
+## Inicie o servidor de desenvolvimento:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+npm run dev
+```
+## Acesse a aplicação em http://localhost:5173.
+
+# 🛡️ Padrões de Código (Seniority Standards)
+## Clean Code: Funções curtas, nomes semânticos e responsabilidade única.
+
+## No Unused Vars: Configuração estrita de TS e ESLint para garantir zero código morto no build.
+## UI/UX Consistente: Uso de Lucide React para iconografia e React Toastify para feedback de operações assíncronas.
+
+## Autor
+## Rodrigo Furlaneti Senior Solutions Analyst Especialista em Ecossistemas .NET e Arquiteturas Multi-Cloud.
