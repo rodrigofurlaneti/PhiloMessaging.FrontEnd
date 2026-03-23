@@ -1,4 +1,9 @@
 ﻿{
+  "common": {
+    "cancel": "取消",
+    "save": "保存",
+    "error": "發生錯誤"
+  },
   "auth": {
     "secure_gateway": "安全網關",
     "phone_label": "全球身份：電話",
@@ -13,9 +18,22 @@
     "register_subtitle": "創建您的安全身份",
     "full_name_label": "全名",
     "email_label": "電子郵件地址",
-    "search_placeholder": "搜索身份...",
     "status_active": "活躍",
-    "type_message": "輸入安全消息...",
     "logout": "登出"
+  },
+  "chat": {
+    "search_placeholder": "搜索身份...",
+    "type_placeholder": "輸入安全消息...",
+    "no_conversations": "未找到活躍對話。",
+    "encrypted_tag": "端到端加密",
+    "welcome_message": "你好 <bold>{{name}}</bold>，歡迎來到 Philo 加密網絡。"
+  },
+  "contacts": {
+    "title": "聯絡人",
+    "add_title": "添加新聯絡人",
+    "nickname_label": "暱稱（選填）",
+    "btn_add": "添加聯絡人",
+    "identified_count": "已識別聯絡人",
+    "empty_state": "您的 Philo 網絡是空的。"
   }
 }

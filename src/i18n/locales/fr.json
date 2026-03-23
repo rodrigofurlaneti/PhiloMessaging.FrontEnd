@@ -1,10 +1,15 @@
 ﻿{
+  "common": {
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "error": "Une erreur est survenue"
+  },
   "auth": {
     "secure_gateway": "Portail Sécurisé",
     "phone_label": "Identité Globale: Téléphone",
     "phone_placeholder": "Entrez le numéro",
     "password_label": "Clé de Sécurité",
-    "forgot_password": "Oublié?",
+    "forgot_password": "Oublié ?",
     "btn_login": "S'AUTHENTIFIER",
     "btn_register": "CRÉER UN COMPTE",
     "switch_to_register": "Pas de compte ? S'inscrire",
@@ -13,9 +18,22 @@
     "register_subtitle": "Créez votre identité sécurisée",
     "full_name_label": "Nom Complet",
     "email_label": "Adresse E-mail",
-    "search_placeholder": "Rechercher une identité...",
     "status_active": "Actif",
-    "type_message": "Écrivez un message sécurisé...",
     "logout": "Se déconnecter"
+  },
+  "chat": {
+    "search_placeholder": "Rechercher une identité...",
+    "type_placeholder": "Écrivez un message sécurisé...",
+    "no_conversations": "Aucune conversation active trouvée.",
+    "encrypted_tag": "E2E Encrypted",
+    "welcome_message": "Bonjour <bold>{{name}}</bold>, bienvenue sur le réseau crypté Philo."
+  },
+  "contacts": {
+    "title": "Contacts",
+    "add_title": "Ajouter un Nouveau Contact",
+    "nickname_label": "Pseudonyme (Optionnel)",
+    "btn_add": "Ajouter le Contact",
+    "identified_count": "Contacts Identifiés",
+    "empty_state": "Votre réseau Philo est vide."
   }
 }

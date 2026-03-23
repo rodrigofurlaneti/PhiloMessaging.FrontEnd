@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../../chat/context/AuthContext';
 import { Lock, ShieldCheck, Loader2, ArrowRight } from 'lucide-react';
 import PhoneInput, { parsePhoneNumber } from 'react-phone-number-input'; 
 import { useTranslation } from 'react-i18next';

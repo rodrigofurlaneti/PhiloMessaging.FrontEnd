@@ -33,3 +33,23 @@ export interface CreateChatRequest {
     description?: string;
     initialMemberIds?: number[];
 }
+
+export interface SendMessageSagaResult {
+    messageId: number | null;
+    sagaId: string;
+    isCompleted: boolean;
+}
+
+export interface MessageDto {
+    id: number;
+    chatId: number;
+    senderId: number;
+    type: string;
+    content: string | null;
+    contentEncrypted: boolean;
+    replyToId: number | null;
+    forwardedFromId: number | null;
+    sentAt: string;
+    editedAt: string | null;
+    deletedForEveryone: boolean;
+}

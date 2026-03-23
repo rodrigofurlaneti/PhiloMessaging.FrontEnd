@@ -1,12 +1,23 @@
 ﻿import { api } from '@/services/api';
-import type { ChatDto, ChatFeedItemDto, CreateChatRequest } from '../types';
+import type { ChatDto, ChatFeedItemDto, CreateChatRequest, SendMessageSagaResult, MessageDto } from '../types';
 export const chatApi = {
-    createChat: async (request: CreateChatRequest): Promise<ChatDto> => {
-        const response = await api.post<ChatDto>('/chats', request);
+    getMessages: async (chatId: number, page = 1, pageSize = 50): Promise<MessageDto[]> => {
+        const response = await api.get<MessageDto[]>(`/chats/${chatId}/messages`, {
+            params: { page, pageSize }
+        });
         return response.data;
     },
-    joinViaLink: async (token: string): Promise<{ message: string }> => {
-        const response = await api.post<{ message: string }>(`/chats/join/${token}`);
+    sendMessageText: async (chatId: number, content: string): Promise<SendMessageSagaResult> => {
+        const request = {
+            type: 1,
+            content: content,
+            contentEncrypted: true
+        };
+        const response = await api.post<SendMessageSagaResult>(`/chats/${chatId}/messages`, request);
+        return response.data;
+    },
+    createChat: async (request: CreateChatRequest): Promise<ChatDto> => {
+        const response = await api.post<ChatDto>('/chats', request);
         return response.data;
     },
     getChatFeed: async (): Promise<ChatFeedItemDto[]> => {
