@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect, type ChangeEvent, memo } from 'react';
+import { useRef, useState, useCallback, useEffect, useMemo, type ChangeEvent, memo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useChatFeed } from '../hooks/useChatFeed';
 import { useMessages } from '../hooks/useMessages';
@@ -54,6 +54,7 @@ export const ChatShell = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const addOptimisticMessage = useChatStore(s => s.addOptimisticMessage);
+  const confirmOptimisticMessage = useChatStore(s => s.confirmOptimisticMessage);
   const removeOptimisticMessage = useChatStore(s => s.removeOptimisticMessage);
   const markMessageDeleted = useChatStore(s => s.markMessageDeleted);
   const restoreMessage = useChatStore(s => s.restoreMessage);
@@ -64,16 +65,15 @@ export const ChatShell = () => {
     onOptimisticAdd: (msg: OptimisticMessage) => {
       if (currentChatId) addOptimisticMessage(msg);
     },
+    // Troca atômica otimista→real sem refetch completo (sem flicker)
+    onConfirm: (tempId, realMsg) => {
+      if (currentChatId) confirmOptimisticMessage(currentChatId, tempId, realMsg);
+    },
     onCompensate: (tempId) => {
       if (currentChatId) {
         removeOptimisticMessage(currentChatId, tempId);
         toast.error('Falha ao enviar mensagem.');
       }
-    },
-    // Recarrega mensagens — o setMessages SUBSTITUI o array inteiro,
-    // eliminando a mensagem otimista e mostrando apenas dados reais da API
-    onRefetchMessages: async () => {
-      await refetchMessages();
     },
     onRefreshFeed: async () => {
       await refetchFeed();
@@ -179,6 +179,12 @@ export const ChatShell = () => {
   const isSending = sendMessageSaga.isRunning || uploadingMedia;
   const filteredChats = chats.filter(c =>
     (c.chatName ?? '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Ordena mensagens do mais antigo (topo) ao mais novo (baixo) — padrão WhatsApp
+  const sortedMessages = useMemo(
+    () => [...messages].sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()),
+    [messages]
   );
 
   return (
@@ -305,7 +311,7 @@ export const ChatShell = () => {
           <ChatView
             chatName={(activeChat as any).chatName ?? (activeChat as any).name ?? 'Chat'}
             chatAvatarUrl={(activeChat as any).avatarUrl}
-            messages={messages}
+            messages={sortedMessages}
             messagesLoading={messagesLoading}
             messagesEndRef={messagesEndRef}
             currentUserId={user?.userId ?? 0}
@@ -417,18 +423,6 @@ const ChatView = ({
     }
   }, [messages.length, messagesEndRef]);
 
-  /** Extrai o nome legível do arquivo a partir da URL do Azure Blob */
-  const extractFileName = (url: string): string => {
-    try {
-      const parts = decodeURIComponent(url).split('/').pop() ?? '';
-      // Remove prefixo UUID gerado pelo backend: "uuid_nomeoriginal.ext"
-      const withoutUuid = parts.replace(/^[0-9a-f-]{36}_/i, '');
-      return withoutUuid || 'arquivo';
-    } catch {
-      return 'arquivo';
-    }
-  };
-
   /** Renderiza o conteúdo da mensagem conforme seu tipo */
   const renderContent = (type: string, content: string | null) => {
     if (!content) return null;
@@ -438,29 +432,11 @@ const ChatView = ({
     }
 
     if (type === 'Video') {
-      return (
-        <video
-          src={content}
-          controls
-          className="max-w-full max-h-64 rounded-xl bg-black"
-        />
-      );
+      return <VideoContent url={content} />;
     }
 
     if (type === 'Audio') {
-      return (
-        <div className="flex items-center gap-3 min-w-[240px] py-1">
-          <div className="w-8 h-8 bg-cyan-500/20 rounded-full flex items-center justify-center shrink-0">
-            <Mic size={14} className="text-cyan-400" />
-          </div>
-          <audio
-            src={content}
-            controls
-            className="flex-1 accent-cyan-500"
-            style={{ minWidth: 160, height: 36 }}
-          />
-        </div>
-      );
+      return <AudioContent url={content} />;
     }
 
     if (type === 'Document') {
@@ -510,7 +486,7 @@ const ChatView = ({
       </header>
 
       {/* Mensagens */}
-      <div className="flex-1 p-8 overflow-y-auto flex flex-col space-y-4">
+      <div className="flex-1 p-8 overflow-y-auto overflow-x-hidden flex flex-col space-y-4">
         {messagesLoading ? (
           <div className="flex justify-center mt-10"><Loader2 className="animate-spin text-cyan-500" size={32} /></div>
         ) : messages.length === 0 ? (
@@ -653,16 +629,38 @@ const ChatView = ({
   );
 };
 
-// ── Componente de imagem com fallback de erro ─────────────────────────────────
+// ── Utilitário: extrai nome do arquivo da URL do Azure Blob ───────────────────
+const extractFileName = (url: string): string => {
+  try {
+    const parts = decodeURIComponent(url).split('/').pop() ?? '';
+    return parts.replace(/^[0-9a-f-]{36}_/i, '') || 'arquivo';
+  } catch {
+    return 'arquivo';
+  }
+};
+
+// ── Imagem com fallback de download ──────────────────────────────────────────
 const ImageContent = memo(({ url }: { url: string }) => {
   const [failed, setFailed] = useState(false);
 
   if (failed) {
     return (
-      <div className="flex items-center gap-2 p-3 text-gray-500 min-w-[180px]">
-        <Image size={16} className="shrink-0" />
-        <span className="text-xs">Imagem indisponível</span>
-      </div>
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        download={extractFileName(url)}
+        className="flex items-center gap-2 p-3 w-full overflow-hidden bg-white/[0.06] hover:bg-white/[0.10] border border-white/10 rounded-xl transition-all group"
+      >
+        <div className="w-8 h-8 bg-emerald-500/20 border border-emerald-500/30 rounded-lg flex items-center justify-center shrink-0">
+          <Image size={14} className="text-emerald-400" />
+        </div>
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <p className="text-xs font-semibold text-gray-200 truncate">{extractFileName(url)}</p>
+          <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Imagem · Clique para baixar</p>
+        </div>
+        <Download size={13} className="text-gray-500 group-hover:text-emerald-400 shrink-0" />
+      </a>
     );
   }
 
@@ -675,6 +673,76 @@ const ImageContent = memo(({ url }: { url: string }) => {
         onError={() => setFailed(true)}
       />
     </a>
+  );
+});
+
+// ── Áudio com fallback de download ───────────────────────────────────────────
+const AudioContent = memo(({ url }: { url: string }) => {
+  const [failed, setFailed] = useState(false);
+  const fileName = extractFileName(url);
+
+  return (
+    <div className="flex items-center gap-2 w-full py-1 overflow-hidden">
+      <div className="w-8 h-8 bg-cyan-500/20 rounded-full flex items-center justify-center shrink-0">
+        <Mic size={14} className="text-cyan-400" />
+      </div>
+      {failed ? (
+        <a
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          download={fileName}
+          className="flex-1 min-w-0 flex items-center gap-2 py-2 px-3 overflow-hidden bg-white/[0.06] hover:bg-white/[0.10] border border-white/10 rounded-xl transition-all group text-xs text-gray-300"
+        >
+          <Download size={13} className="text-cyan-400 shrink-0" />
+          <span className="truncate min-w-0">Baixar áudio · {fileName}</span>
+        </a>
+      ) : (
+        <audio
+          src={url}
+          controls
+          className="flex-1 min-w-0 accent-cyan-500"
+          style={{ minWidth: 0, height: 36 }}
+          onError={() => setFailed(true)}
+        />
+      )}
+    </div>
+  );
+});
+
+// ── Vídeo com fallback de download ────────────────────────────────────────────
+const VideoContent = memo(({ url }: { url: string }) => {
+  const [failed, setFailed] = useState(false);
+  const fileName = extractFileName(url);
+
+  if (failed) {
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        download={fileName}
+        className="flex items-center gap-2 p-3 w-full overflow-hidden bg-white/[0.06] hover:bg-white/[0.10] border border-white/10 rounded-xl transition-all group"
+      >
+        <div className="w-8 h-8 bg-rose-500/20 border border-rose-500/30 rounded-lg flex items-center justify-center shrink-0">
+          <Video size={14} className="text-rose-400" />
+        </div>
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <p className="text-xs font-semibold text-gray-200 truncate">{fileName}</p>
+          <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Vídeo · Clique para baixar</p>
+        </div>
+        <Download size={13} className="text-gray-500 group-hover:text-rose-400 shrink-0" />
+      </a>
+    );
+  }
+
+  return (
+    <video
+      src={url}
+      controls
+      className="max-w-full max-h-64 rounded-xl bg-black"
+      onError={() => setFailed(true)}
+    />
   );
 });
 
