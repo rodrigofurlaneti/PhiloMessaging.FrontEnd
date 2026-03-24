@@ -1,22 +1,31 @@
 import { useState, useCallback } from 'react';
 import { generateId as uuidv4 } from './uuid';
 import { chatApi } from '@/features/chat/api/chatApi';
-import type { AnyMessage, OptimisticMessage } from '@/features/chat/types';
+import type { OptimisticMessage } from '@/features/chat/types';
 import {
   SagaStatus,
   SendMessageSagaStep,
   type SendMessageSagaState,
 } from './types';
 
+/** Converte o messageType numérico para o nome string esperado pelo backend/UI */
+const messageTypeToString = (t: number): string => {
+  const map: Record<number, string> = {
+    1: 'Text', 2: 'Image', 3: 'Video', 4: 'Audio', 5: 'Document',
+    6: 'Sticker', 7: 'Gif', 8: 'Location', 9: 'Contact', 10: 'Poll', 11: 'System',
+  };
+  return map[t] ?? 'Text';
+};
+
 interface UseSendMessageSagaOptions {
   chatId: number;
   senderId: number;
   /** Callback para adicionar mensagem otimista no estado local */
   onOptimisticAdd?: (msg: OptimisticMessage) => void;
-  /** Callback para confirmar mensagem (substitui otimista pelo real) */
-  onConfirm?: (tempId: string, realMessage: AnyMessage) => void;
   /** Callback para remover mensagem otimista em caso de falha (compensação) */
   onCompensate?: (tempId: string) => void;
+  /** Callback para recarregar mensagens imediatamente após confirmação */
+  onRefetchMessages?: () => void | Promise<void>;
   /** Callback ao concluir para atualizar feed */
   onRefreshFeed?: () => void | Promise<void>;
 }
@@ -53,7 +62,7 @@ const initialState = (): SendMessageSagaState => ({
  * Compensação: remove a mensagem otimista se a API falhar.
  */
 export const useSendMessageSaga = (options: UseSendMessageSagaOptions) => {
-  const { chatId, senderId, onOptimisticAdd, onConfirm, onCompensate, onRefreshFeed } = options;
+  const { chatId, senderId, onOptimisticAdd, onCompensate, onRefetchMessages, onRefreshFeed } = options;
   const [sagaState, setSagaState] = useState<SendMessageSagaState>(initialState());
 
   const execute = useCallback(
@@ -98,7 +107,7 @@ export const useSendMessageSaga = (options: UseSendMessageSagaOptions) => {
         id: -Date.now(), // ID temporário negativo para não conflitar com BD
         chatId,
         senderId,
-        type: messageType === 1 ? 'Text' : 'Other',
+        type: messageTypeToString(messageType),
         content,
         contentEncrypted: true,
         replyToId: replyToId ?? null,
@@ -126,28 +135,32 @@ export const useSendMessageSaga = (options: UseSendMessageSagaOptions) => {
           forwardedFromId,
         });
 
-        // ── Step 3: OptimisticUpdate (confirmar) ──────────────────────────
+        // ── Step 3: OptimisticUpdate — mensagem criada no backend.
+        //    NÃO adicionamos uma cópia "confirmada" no store porque
+        //    onRefetchMessages já vai substituir o array completo com
+        //    os dados reais da API, eliminando o risco de duplicação.
         setSagaState(prev => ({
           ...prev,
           currentStep: SendMessageSagaStep.OptimisticUpdate,
           sagaResultMessageId: result.messageId,
+          createdMessageId: result.messageId,
         }));
 
-        if (result.messageId) {
-          // Substitui mensagem otimista pela real (ou recarrega lista)
-          const confirmedMsg: AnyMessage = {
-            ...optimisticMsg,
-            id: result.messageId,
-            isOptimistic: true,
-            isPending: false,
-            isFailed: false,
-          };
-          onConfirm?.(tempId, confirmedMsg);
+        // ── Refetch imediato: substitui a mensagem otimista pelos dados
+        //    reais da API (setMessages REPLACE — sem duplicatas) ─────────
+        try {
+          await onRefetchMessages?.();
+        } catch {
+          // Refetch falhou mas mensagem JÁ foi criada — não compensa
         }
 
         // ── Step 4: RefreshFeed ───────────────────────────────────────────
         setSagaState(prev => ({ ...prev, currentStep: SendMessageSagaStep.RefreshFeed }));
-        await onRefreshFeed?.();
+        try {
+          await onRefreshFeed?.();
+        } catch {
+          // Feed refresh falhou — não crítico, não compensa
+        }
 
         // ── Completed ─────────────────────────────────────────────────────
         setSagaState(prev => ({
@@ -155,7 +168,6 @@ export const useSendMessageSaga = (options: UseSendMessageSagaOptions) => {
           currentStep: SendMessageSagaStep.Completed,
           status: SagaStatus.Completed,
           isCompleted: true,
-          createdMessageId: result.messageId,
         }));
 
         return result;
@@ -179,7 +191,7 @@ export const useSendMessageSaga = (options: UseSendMessageSagaOptions) => {
         return null;
       }
     },
-    [chatId, senderId, onOptimisticAdd, onConfirm, onCompensate, onRefreshFeed]
+    [chatId, senderId, onOptimisticAdd, onCompensate, onRefetchMessages, onRefreshFeed]
   );
 
   const reset = useCallback(() => setSagaState(initialState()), []);

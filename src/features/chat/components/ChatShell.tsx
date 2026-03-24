@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, type ChangeEvent } from 'react';
+import { useRef, useState, useCallback, useEffect, type ChangeEvent, memo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useChatFeed } from '../hooks/useChatFeed';
 import { useMessages } from '../hooks/useMessages';
@@ -14,7 +14,7 @@ import {
   LogOut, MessageSquare, Users, Settings, Search,
   Send, Paperclip, ShieldCheck, Loader2, UserPlus,
   User as UserIcon, Trash2, Link, X, Wifi, WifiOff,
-  Image, FileText, Mic, Video,
+  Image, FileText, Mic, Video, Download,
 } from 'lucide-react';
 import { useTranslation, Trans } from 'react-i18next';
 import { LanguageSelector } from '../../../components/ui/LanguageSelector';
@@ -54,7 +54,6 @@ export const ChatShell = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const addOptimisticMessage = useChatStore(s => s.addOptimisticMessage);
-  const confirmOptimisticMessage = useChatStore(s => s.confirmOptimisticMessage);
   const removeOptimisticMessage = useChatStore(s => s.removeOptimisticMessage);
   const markMessageDeleted = useChatStore(s => s.markMessageDeleted);
   const restoreMessage = useChatStore(s => s.restoreMessage);
@@ -64,20 +63,20 @@ export const ChatShell = () => {
     senderId: user?.userId ?? 0,
     onOptimisticAdd: (msg: OptimisticMessage) => {
       if (currentChatId) addOptimisticMessage(msg);
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
-    },
-    onConfirm: (tempId, realMsg) => {
-      if (currentChatId) confirmOptimisticMessage(currentChatId, tempId, realMsg);
     },
     onCompensate: (tempId) => {
       if (currentChatId) {
         removeOptimisticMessage(currentChatId, tempId);
-        toast.error('Falha ao enviar mensagem. Saga compensada.');
+        toast.error('Falha ao enviar mensagem.');
       }
+    },
+    // Recarrega mensagens — o setMessages SUBSTITUI o array inteiro,
+    // eliminando a mensagem otimista e mostrando apenas dados reais da API
+    onRefetchMessages: async () => {
+      await refetchMessages();
     },
     onRefreshFeed: async () => {
       await refetchFeed();
-      await refetchMessages();
     },
   });
 
@@ -96,9 +95,10 @@ export const ChatShell = () => {
   const createChatSaga = useCreateChatSaga({
     onRefreshFeed: refetchFeed,
     onChatCreated: (chat: ChatDto) => {
-      setActiveChat(chat);
-      setSelectedContact(null);
+      // IMPORTANTE: chamar setActiveChat DEPOIS de setView para não resetar
+      // o activeChat (setSelectedContact limpa activeChat internamente)
       setView('chats');
+      setActiveChat(chat);
     },
   });
 
@@ -146,15 +146,20 @@ export const ChatShell = () => {
     if (!currentChatId) return;
     setUploadingMedia(true);
     try {
-      const { url, messageType } = await mediaApi.uploadAuto(file, currentChatId);
-      await sendMessageSaga.execute(url, messageType);
+      // O MediaController do backend (SendImageCommand / SendAudioCommand etc.)
+      // já persiste a mensagem no banco E dispara o evento SignalR.
+      // NÃO chamar sendMessageSaga.execute aqui — evita duplicata de mensagem.
+      await mediaApi.uploadAuto(file, currentChatId);
+      // Recarrega mensagens para exibir a nova imediatamente
+      await refetchMessages();
+      await refetchFeed();
       toast.success('Arquivo enviado!');
     } catch {
       toast.error('Erro ao enviar arquivo.');
     } finally {
       setUploadingMedia(false);
     }
-  }, [currentChatId, sendMessageSaga]);
+  }, [currentChatId, refetchMessages, refetchFeed]);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -405,12 +410,83 @@ const ChatView = ({
 }: ChatViewProps) => {
   const [hoveredMsgId, setHoveredMsgId] = useState<number | null>(null);
 
-  const getMediaIcon = (type: string) => {
-    if (type === 'Image') return <Image size={12} />;
-    if (type === 'Video') return <Video size={12} />;
-    if (type === 'Audio') return <Mic size={12} />;
-    if (type === 'Document') return <FileText size={12} />;
-    return null;
+  // ── Auto-scroll para a última mensagem sempre que a lista mudar ──────────
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages.length, messagesEndRef]);
+
+  /** Extrai o nome legível do arquivo a partir da URL do Azure Blob */
+  const extractFileName = (url: string): string => {
+    try {
+      const parts = decodeURIComponent(url).split('/').pop() ?? '';
+      // Remove prefixo UUID gerado pelo backend: "uuid_nomeoriginal.ext"
+      const withoutUuid = parts.replace(/^[0-9a-f-]{36}_/i, '');
+      return withoutUuid || 'arquivo';
+    } catch {
+      return 'arquivo';
+    }
+  };
+
+  /** Renderiza o conteúdo da mensagem conforme seu tipo */
+  const renderContent = (type: string, content: string | null) => {
+    if (!content) return null;
+
+    if (type === 'Image') {
+      return <ImageContent url={content} />;
+    }
+
+    if (type === 'Video') {
+      return (
+        <video
+          src={content}
+          controls
+          className="max-w-full max-h-64 rounded-xl bg-black"
+        />
+      );
+    }
+
+    if (type === 'Audio') {
+      return (
+        <div className="flex items-center gap-3 min-w-[240px] py-1">
+          <div className="w-8 h-8 bg-cyan-500/20 rounded-full flex items-center justify-center shrink-0">
+            <Mic size={14} className="text-cyan-400" />
+          </div>
+          <audio
+            src={content}
+            controls
+            className="flex-1 accent-cyan-500"
+            style={{ minWidth: 160, height: 36 }}
+          />
+        </div>
+      );
+    }
+
+    if (type === 'Document') {
+      const fileName = extractFileName(content);
+      return (
+        <a
+          href={content}
+          target="_blank"
+          rel="noreferrer"
+          download={fileName}
+          className="flex items-center gap-3 p-3 bg-white/[0.07] hover:bg-white/[0.12] border border-white/10 rounded-xl transition-all group"
+        >
+          <div className="w-9 h-9 bg-blue-500/20 border border-blue-500/30 rounded-lg flex items-center justify-center shrink-0">
+            <FileText size={16} className="text-blue-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-gray-200 truncate">{fileName}</p>
+            <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Documento · Clique para baixar</p>
+          </div>
+          <Download size={14} className="text-gray-500 group-hover:text-cyan-400 transition-colors shrink-0" />
+        </a>
+      );
+    }
+
+    // Text e outros
+    return <p className="break-words leading-relaxed">{content}</p>;
   };
 
   return (
@@ -449,14 +525,21 @@ const ChatView = ({
             const isPending = (msg as any).isPending;
             const isOptimistic = (msg as any).isOptimistic;
             const isDeleted = msg.deletedForEveryone;
-            const mediaIcon = getMediaIcon(msg.type);
+            const isMedia = ['Image', 'Video', 'Audio', 'Document'].includes(msg.type);
+
+            // Largura máxima varia por tipo de conteúdo
+            const maxWidth = msg.type === 'Image' ? 'max-w-[320px]'
+              : msg.type === 'Document' ? 'max-w-[340px]'
+              : msg.type === 'Audio' ? 'max-w-[320px]'
+              : msg.type === 'Video' ? 'max-w-[360px]'
+              : 'max-w-[70%]';
 
             return (
               <div key={msg.id}
                 className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}
                 onMouseEnter={() => setHoveredMsgId(msg.id)}
                 onMouseLeave={() => setHoveredMsgId(null)}>
-                <div className="relative max-w-[70%]">
+                <div className={`relative ${maxWidth}`}>
                   {isMine && !isDeleted && !isOptimistic && hoveredMsgId === msg.id && (
                     <button onClick={() => onDelete(msg)}
                       className="absolute -top-2 -left-8 p-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg text-red-400 transition-all z-10"
@@ -464,35 +547,34 @@ const ChatView = ({
                       <Trash2 size={12} />
                     </button>
                   )}
-                  <div className={`p-3 rounded-2xl text-sm transition-all ${
-                    isDeleted ? 'bg-white/[0.03] border border-white/5 italic opacity-40'
-                      : isMine
-                        ? `bg-cyan-500/20 border border-cyan-500/30 rounded-tr-none text-cyan-50 shadow-[0_5px_15px_rgba(6,182,212,0.1)] ${isPending ? 'opacity-70' : ''}`
-                        : 'bg-white/5 border border-white/10 rounded-tl-none text-gray-200'
+                  <div className={`rounded-2xl text-sm transition-all ${
+                    isDeleted
+                      ? 'p-3 bg-white/[0.03] border border-white/5 italic opacity-40'
+                      : isMedia
+                        ? `p-2 ${isMine
+                            ? `border border-cyan-500/20 rounded-tr-none shadow-[0_5px_15px_rgba(6,182,212,0.08)] ${isPending ? 'opacity-70' : ''}`
+                            : 'border border-white/10 rounded-tl-none'
+                          }`
+                        : isMine
+                          ? `p-3 bg-cyan-500/20 border border-cyan-500/30 rounded-tr-none text-cyan-50 shadow-[0_5px_15px_rgba(6,182,212,0.1)] ${isPending ? 'opacity-70' : ''}`
+                          : 'p-3 bg-white/5 border border-white/10 rounded-tl-none text-gray-200'
                   }`}>
                     {isDeleted ? (
                       <p className="text-[11px]">🚫 Mensagem apagada</p>
                     ) : (
                       <>
-                        {mediaIcon && (
-                          <div className="flex items-center gap-1 mb-1 text-[10px] opacity-60">
-                            {mediaIcon}
-                            <span className="uppercase tracking-wider">{msg.type}</span>
-                          </div>
-                        )}
-                        {msg.content && (
-                          (msg.type === 'Image' || msg.type === 'Video')
-                            ? <img src={msg.content} alt="mídia" className="max-w-full rounded-lg mb-1" />
-                            : <p className="break-words">{msg.content}</p>
-                        )}
+                        {/* Conteúdo da mensagem conforme tipo */}
+                        {renderContent(msg.type, msg.content)}
+
+                        {/* Timestamp */}
+                        <div className={`flex items-center justify-end gap-1 mt-1 ${isMedia && msg.type !== 'Audio' ? 'px-3 pb-2' : ''}`}>
+                          <span className="text-[9px] opacity-40">
+                            {new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          {isPending && <Loader2 size={9} className="animate-spin opacity-40" />}
+                        </div>
                       </>
                     )}
-                    <div className="flex items-center justify-end gap-1 mt-1">
-                      <span className="text-[9px] opacity-40">
-                        {new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                      {isPending && <Loader2 size={9} className="animate-spin opacity-40" />}
-                    </div>
                   </div>
                 </div>
               </div>
@@ -570,6 +652,31 @@ const ChatView = ({
     </div>
   );
 };
+
+// ── Componente de imagem com fallback de erro ─────────────────────────────────
+const ImageContent = memo(({ url }: { url: string }) => {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <div className="flex items-center gap-2 p-3 text-gray-500 min-w-[180px]">
+        <Image size={16} className="shrink-0" />
+        <span className="text-xs">Imagem indisponível</span>
+      </div>
+    );
+  }
+
+  return (
+    <a href={url} target="_blank" rel="noreferrer" className="block">
+      <img
+        src={url}
+        alt="imagem"
+        className="max-w-full max-h-64 rounded-xl object-contain cursor-pointer hover:opacity-90 transition-opacity bg-black/20"
+        onError={() => setFailed(true)}
+      />
+    </a>
+  );
+});
 
 const HandshakeView = ({
   displayName, phoneNumber, avatarUrl, input, isSending, currentStep, onInputChange, onHandshake,

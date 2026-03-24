@@ -85,6 +85,6 @@ export const mediaApi = {
 
     // Qualquer outro tipo = documento
     const result = await mediaApi.uploadDocument(file, chatId);
-    return { url: result.url, messageType: 6 }; // MessageType.Document = 6
+    return { url: result.url, messageType: 5 }; // MessageType.Document = 5
   },
 };
