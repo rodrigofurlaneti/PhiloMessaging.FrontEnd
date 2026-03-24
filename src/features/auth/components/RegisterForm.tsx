@@ -1,9 +1,9 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useRegister } from '../hooks/useRegister';
-import { User, Lock, Mail, ShieldCheck, Loader2 } from 'lucide-react';
+import { User, Lock, Mail, ShieldCheck, Loader2, ChevronLeft } from 'lucide-react';
 import PhoneInput, { parsePhoneNumber } from 'react-phone-number-input';
-import { useTranslation } from 'react-i18next'; 
-import { LanguageSelector } from '@/components/ui/LanguageSelector'; 
+import { useTranslation } from 'react-i18next';
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import 'react-phone-number-input/style.css';
 
 interface RegisterFormProps {
@@ -11,9 +11,8 @@ interface RegisterFormProps {
 }
 
 export const RegisterForm = ({ onToggleLogin }: RegisterFormProps) => {
-    const { t } = useTranslation(); // 3. Inicializa tradução
+    const { t } = useTranslation();
     const { register, isLoading, error } = useRegister();
-
     const [phoneValue, setPhoneValue] = useState<string | undefined>();
     const [email, setEmail] = useState('');
     const [displayName, setDisplayName] = useState('');
@@ -21,7 +20,6 @@ export const RegisterForm = ({ onToggleLogin }: RegisterFormProps) => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (phoneValue && email) {
             const phoneNumberData = parsePhoneNumber(phoneValue);
             if (phoneNumberData) {
@@ -32,127 +30,135 @@ export const RegisterForm = ({ onToggleLogin }: RegisterFormProps) => {
                     email,
                     password
                 });
-
-                if (result) {
-                    window.location.reload();
-                }
+                if (result) window.location.reload();
             }
         }
     };
 
+    const inputRow = (icon: React.ReactNode, placeholder: string, value: string, onChange: (v: string) => void, type = 'text', delay = '') => (
+        <div
+            className={`flex items-center ${delay}`}
+            style={{ background:'#161616', border:'1px solid rgba(201,168,76,0.08)', borderRadius:'12px', transition:'border-color 0.25s' }}
+            onFocusCapture={e => (e.currentTarget.style.borderColor='rgba(201,168,76,0.35)')}
+            onBlurCapture={e  => (e.currentTarget.style.borderColor='rgba(201,168,76,0.08)')}
+        >
+            <div className="ml-4 shrink-0" style={{ color:'rgba(201,168,76,0.35)' }}>{icon}</div>
+            <input
+                type={type}
+                placeholder={placeholder}
+                className="w-full px-3 py-[14px] font-mono-dm text-sm bg-transparent outline-none"
+                style={{ color:'#F5EDD8' }}
+                value={value}
+                onChange={e => onChange(e.target.value)}
+                required
+            />
+        </div>
+    );
+
     return (
-        <div className="flex flex-col items-center w-full max-w-md animate-fade-in">
+        <div className="flex flex-col items-center w-full max-w-[420px]">
 
-            {/* Seletor de Idiomas no topo do formulário */}
-            <LanguageSelector variant="horizontal" />
+            <div className="animate-fade-up mb-8 self-end">
+                <LanguageSelector variant="horizontal" />
+            </div>
 
-            <div className="mb-8 text-center">
-                <div className="inline-flex p-4 rounded-3xl bg-philo-primary/10 mb-4 border border-philo-primary/20">
-                    <ShieldCheck className="text-philo-primary" size={40} />
+            {/* Logo */}
+            <div className="animate-fade-up delay-50 text-center mb-8">
+                <div
+                    className="inline-flex items-center justify-center w-14 h-14 mb-4 rounded-2xl"
+                    style={{ background:'rgba(201,168,76,0.08)', border:'1px solid rgba(201,168,76,0.2)', boxShadow:'0 0 24px rgba(201,168,76,0.07)' }}
+                >
+                    <ShieldCheck size={26} style={{ color:'#C9A84C' }} strokeWidth={1.5} />
                 </div>
-                <h1 className="text-3xl font-black text-white tracking-tighter">
-                    {t('auth.join')} <span className="text-philo-primary">Philo</span>
+                <h1 className="font-cormorant text-4xl font-light tracking-wide mb-1" style={{ color:'#F5EDD8' }}>
+                    {t('auth.join')} <span style={{ color:'#C9A84C' }}>Philo</span>
                 </h1>
-                <p className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">
+                <p className="font-mono-dm text-[10px] tracking-[0.2em] uppercase" style={{ color:'rgba(201,168,76,0.4)' }}>
                     {t('auth.register_subtitle')}
                 </p>
             </div>
 
-            <div className="w-full bg-philo-card p-10 rounded-[2.5rem] shadow-2xl border border-white/5 backdrop-blur-md">
-                <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Card */}
+            <div
+                className="animate-fade-up delay-100 w-full rounded-2xl p-8"
+                style={{
+                    background: 'rgba(13,13,13,0.9)',
+                    border: '1px solid rgba(201,168,76,0.1)',
+                    boxShadow: '0 24px 60px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(201,168,76,0.05)',
+                    backdropFilter: 'blur(20px)',
+                }}
+            >
+                <div className="flex items-center gap-3 mb-7">
+                    <div style={{ flex:1, height:'1px', background:'linear-gradient(90deg, rgba(201,168,76,0.2), transparent)' }}/>
+                    <span className="font-mono-dm text-[9px] tracking-[0.25em] uppercase" style={{ color:'rgba(201,168,76,0.4)' }}>Nova Conta</span>
+                    <div style={{ flex:1, height:'1px', background:'linear-gradient(270deg, rgba(201,168,76,0.2), transparent)' }}/>
+                </div>
 
-                    {/* Full Name */}
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-philo-primary uppercase tracking-widest ml-1">
-                            {t('auth.full_name_label')}
-                        </label>
-                        <div className="relative flex items-center bg-philo-input rounded-2xl border border-transparent focus-within:border-philo-primary/40 transition-all duration-300">
-                            <User className="ml-4 text-gray-500" size={18} />
-                            <input
-                                type="text"
-                                placeholder="Rodrigo Furlaneti"
-                                className="w-full p-4 bg-transparent text-gray-200 outline-none placeholder:text-gray-700"
-                                value={displayName}
-                                onChange={e => setDisplayName(e.target.value)}
-                                required
-                            />
+                <form onSubmit={handleSubmit} className="space-y-4">
+
+                    <div className="animate-fade-up delay-150">
+                        <label className="field-label">{t('auth.full_name_label')}</label>
+                        {inputRow(<User size={15}/>, 'Rodrigo Furlaneti', displayName, setDisplayName)}
+                    </div>
+
+                    <div className="animate-fade-up delay-200">
+                        <label className="field-label">{t('auth.email_label')}</label>
+                        {inputRow(<Mail size={15}/>, 'email@exemplo.com', email, setEmail, 'email')}
+                    </div>
+
+                    <div className="animate-fade-up delay-250">
+                        <label className="field-label">{t('auth.phone_label')}</label>
+                        <div className="philo-phone-container">
+                            <PhoneInput value={phoneValue} onChange={setPhoneValue} defaultCountry="BR" />
                         </div>
                     </div>
 
-                    {/* E-mail Address */}
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-philo-primary uppercase tracking-widest ml-1">
-                            {t('auth.email_label')}
-                        </label>
-                        <div className="relative flex items-center bg-philo-input rounded-2xl border border-transparent focus-within:border-philo-primary/40 transition-all duration-300">
-                            <Mail className="ml-4 text-gray-500" size={18} />
-                            <input
-                                type="email"
-                                placeholder="exemplo@furlaneti.com"
-                                className="w-full p-4 bg-transparent text-gray-200 outline-none placeholder:text-gray-700"
-                                value={email}
-                                onChange={e => setEmail(e.target.value)}
-                                required
-                            />
-                        </div>
+                    <div className="animate-fade-up delay-300">
+                        <label className="field-label">{t('auth.password_label')}</label>
+                        {inputRow(<Lock size={15}/>, '••••••••', password, setPassword, 'password')}
                     </div>
 
-                    {/* Phone Number */}
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-philo-primary uppercase tracking-widest ml-1">
-                            {t('auth.phone_label')}
-                        </label>
-                        <div className="philo-phone-container bg-philo-input rounded-2xl border border-transparent focus-within:border-philo-primary/40 p-2 transition-all duration-300">
-                            <PhoneInput
-                                value={phoneValue}
-                                onChange={setPhoneValue}
-                                defaultCountry="BR"
-                                className="w-full"
-                            />
-                        </div>
+                    <div className="animate-fade-up delay-350 pt-3">
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="btn-gold w-full flex items-center justify-center gap-2 py-4 rounded-xl text-[11px]"
+                        >
+                            {isLoading
+                                ? <Loader2 size={18} className="animate-spin" />
+                                : t('auth.btn_register')
+                            }
+                        </button>
                     </div>
 
-                    {/* Password */}
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-philo-primary uppercase tracking-widest ml-1">
-                            {t('auth.password_label')}
-                        </label>
-                        <div className="relative flex items-center bg-philo-input rounded-2xl border border-transparent focus-within:border-philo-primary/40 transition-all duration-300">
-                            <Lock className="ml-4 text-gray-500" size={18} />
-                            <input
-                                type="password"
-                                placeholder="••••••••"
-                                className="w-full p-4 bg-transparent text-gray-200 outline-none placeholder:text-gray-700"
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                required
-                            />
-                        </div>
+                    <div className="animate-fade-up delay-400 text-center pt-1">
+                        <button
+                            type="button"
+                            onClick={onToggleLogin}
+                            className="inline-flex items-center gap-1 font-mono-dm text-[10px] tracking-[0.15em] uppercase transition-colors"
+                            style={{ color:'rgba(201,168,76,0.35)' }}
+                            onMouseEnter={e => (e.currentTarget.style.color='rgba(201,168,76,0.65)')}
+                            onMouseLeave={e => (e.currentTarget.style.color='rgba(201,168,76,0.35)')}
+                        >
+                            <ChevronLeft size={12}/>
+                            {t('auth.switch_to_login')}
+                        </button>
                     </div>
-
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full bg-philo-primary hover:bg-philo-accent text-philo-bg font-black py-4 rounded-2xl transition-all duration-300 shadow-xl shadow-philo-primary/20 active:scale-[0.98] mt-2 disabled:opacity-50"
-                    >
-                        {isLoading ? <Loader2 className="animate-spin" size={20} /> : t('auth.btn_register')}
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={onToggleLogin}
-                        className="w-full text-[10px] font-bold text-gray-500 hover:text-philo-primary uppercase tracking-[0.2em] transition-colors"
-                    >
-                        {t('auth.switch_to_login')}
-                    </button>
 
                     {error && (
-                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs text-center font-medium animate-shake">
+                        <div
+                            className="animate-fade-up p-4 rounded-xl text-xs text-center font-mono-dm tracking-wide"
+                            style={{ background:'rgba(180,40,40,0.08)', border:'1px solid rgba(180,40,40,0.2)', color:'#e07070' }}
+                        >
                             {error}
                         </div>
                     )}
                 </form>
             </div>
+
+            <p className="animate-fade-up delay-500 mt-6 font-mono-dm text-[9px] tracking-[0.2em] uppercase text-center" style={{ color:'rgba(201,168,76,0.2)' }}>
+                End-to-end encrypted · Zero knowledge
+            </p>
         </div>
     );
 };

@@ -1,28 +1,320 @@
-﻿@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
 
+/* ─── Dark Luxury Design Tokens ──────────────────────────────────────── */
 @theme {
-    --color-philo-bg: #0b141a;
-    --color-philo-card: #1f2c33;
-    --color-philo-input: #2a3942;
-    --color-philo-primary: #10b981;
-    --color-philo-accent: #00a884;
+    --color-philo-bg:            #080808;
+    --color-philo-surface:       #0d0d0d;
+    --color-philo-surface2:      #141414;
+    --color-philo-surface3:      #1c1c1c;
+    --color-philo-card:          #111111;
+    --color-philo-input:         #161616;
+    --color-philo-primary:       #C9A84C;
+    --color-philo-accent:        #E8D5A3;
+    --color-philo-text:          #F5EDD8;
+    --color-philo-text-muted:    #7a6d55;
+    --color-philo-border:        rgba(201,168,76,0.1);
+    --color-philo-border-active: rgba(201,168,76,0.3);
 }
+
+/* ─── Base Reset ──────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
 
 :root {
     background-color: var(--color-philo-bg);
-    color: #e9edef;
-    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--color-philo-text);
 }
 
 body {
     margin: 0;
+    min-height: 100vh;
+    min-width: 320px;
     display: flex;
     place-items: center;
-    min-width: 320px;
-    min-height: 100vh;
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--color-philo-bg);
+    color: var(--color-philo-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* Reset básico para inputs não ficarem com bordas brancas feias */
-input {
-    @apply bg-transparent border-none outline-none;
+input, textarea { background: transparent; border: none; outline: none; font-family: inherit; }
+
+/* ─── Custom Scrollbar ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.15); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,0.3); }
+
+/* ─── Phone Input Overrides ───────────────────────────────────────────── */
+.philo-phone-container .PhoneInput {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background: var(--color-philo-input);
+    border-radius: 12px;
+    border: 1px solid rgba(201,168,76,0.08);
+    transition: border-color 0.25s ease;
+}
+.philo-phone-container .PhoneInput:focus-within {
+    border-color: rgba(201,168,76,0.35);
+}
+.philo-phone-container .PhoneInputCountrySelect {
+    background: transparent;
+    border: none;
+    color: var(--color-philo-text-muted);
+    outline: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    appearance: none;
+}
+.philo-phone-container .PhoneInputCountryIcon {
+    width: 20px;
+    height: 14px;
+    border-radius: 2px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.philo-phone-container .PhoneInputInput {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--color-philo-text);
+    font-size: 14px;
+    font-family: 'DM Mono', monospace;
+    width: 100%;
+    letter-spacing: 0.04em;
+}
+.philo-phone-container .PhoneInputInput::placeholder {
+    color: var(--color-philo-text-muted);
+    opacity: 0.5;
+}
+
+/* ─── Keyframe Animations ─────────────────────────────────────────────── */
+@keyframes fade-up {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes scale-in {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes slide-right {
+    from { opacity: 0; transform: translateX(-14px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes msg-in-mine {
+    from { opacity: 0; transform: translateX(16px) scale(0.96); }
+    to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes msg-in-theirs {
+    from { opacity: 0; transform: translateX(-16px) scale(0.96); }
+    to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes shimmer-slide {
+    0%   { background-position: -300% 0; }
+    100% { background-position:  300% 0; }
+}
+@keyframes gold-pulse-ring {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
+    50%       { box-shadow: 0 0 0 4px rgba(201,168,76,0.12); }
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-4px); }
+}
+
+/* ─── Utility Animation Classes ──────────────────────────────────────── */
+.animate-fade-up   { animation: fade-up   0.45s cubic-bezier(.22,.68,0,1.15) both; }
+.animate-fade-in   { animation: fade-in   0.35s ease both; }
+.animate-scale-in  { animation: scale-in  0.4s  cubic-bezier(.22,.68,0,1.2)  both; }
+.animate-slide-r   { animation: slide-right 0.35s ease both; }
+.animate-msg-mine  { animation: msg-in-mine   0.28s cubic-bezier(.22,.68,0,1.2) both; }
+.animate-msg-their { animation: msg-in-theirs 0.28s cubic-bezier(.22,.68,0,1.2) both; }
+.animate-float     { animation: float 3s ease-in-out infinite; }
+
+.delay-50  { animation-delay: 0.05s; }
+.delay-100 { animation-delay: 0.1s;  }
+.delay-150 { animation-delay: 0.15s; }
+.delay-200 { animation-delay: 0.2s;  }
+.delay-250 { animation-delay: 0.25s; }
+.delay-300 { animation-delay: 0.3s;  }
+.delay-350 { animation-delay: 0.35s; }
+.delay-400 { animation-delay: 0.4s;  }
+.delay-500 { animation-delay: 0.5s;  }
+
+/* ─── Font Utilities ──────────────────────────────────────────────────── */
+.font-cormorant { font-family: 'Cormorant Garamond', serif; }
+.font-mono-dm   { font-family: 'DM Mono', monospace; }
+.font-outfit    { font-family: 'Outfit', sans-serif; }
+
+/* ─── Component Primitives ────────────────────────────────────────────── */
+
+/* Gold CTA Button */
+.btn-gold {
+    position: relative;
+    overflow: hidden;
+    background: #C9A84C;
+    color: #080808;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    transition: background 0.22s ease, box-shadow 0.22s ease, transform 0.15s ease;
+}
+.btn-gold::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.28) 50%, transparent 70%);
+    background-size: 300% 100%;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.btn-gold:hover::after { opacity: 1; animation: shimmer-slide 0.65s ease; }
+.btn-gold:hover { background: #d9b960; box-shadow: 0 10px 32px rgba(201,168,76,0.2); }
+.btn-gold:active { transform: scale(0.97); }
+.btn-gold:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* Ghost Button */
+.btn-ghost {
+    background: transparent;
+    color: var(--color-philo-text-muted);
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border: 1px solid rgba(201,168,76,0.1);
+    cursor: pointer;
+    transition: all 0.22s ease;
+}
+.btn-ghost:hover {
+    color: var(--color-philo-primary);
+    border-color: rgba(201,168,76,0.3);
+    background: rgba(201,168,76,0.04);
+}
+
+/* Gold input */
+.input-luxury {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--color-philo-input);
+    border: 1px solid rgba(201,168,76,0.08);
+    border-radius: 12px;
+    color: var(--color-philo-text);
+    font-size: 14px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.03em;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.input-luxury:focus {
+    border-color: rgba(201,168,76,0.35);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.04);
+}
+.input-luxury::placeholder {
+    color: var(--color-philo-text-muted);
+    opacity: 0.5;
+}
+
+/* Glass surface */
+.glass-panel {
+    background: rgba(13,13,13,0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(201,168,76,0.1);
+}
+
+/* Message bubbles */
+.msg-mine {
+    background: linear-gradient(140deg, rgba(201,168,76,0.15), rgba(201,168,76,0.07));
+    border: 1px solid rgba(201,168,76,0.22);
+    color: #F5EDD8;
+}
+.msg-theirs {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    color: #d4cbbf;
+}
+
+/* Auth decorative background */
+.auth-bg {
+    position: fixed;
+    inset: 0;
+    background: #080808;
+    overflow: hidden;
+}
+.auth-bg::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: -10%;
+    width: 55%;
+    height: 70%;
+    background: radial-gradient(ellipse at center, rgba(201,168,76,0.05) 0%, transparent 70%);
+    pointer-events: none;
+}
+.auth-bg::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    right: -10%;
+    width: 55%;
+    height: 70%;
+    background: radial-gradient(ellipse at center, rgba(201,168,76,0.04) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+/* Chat area subtle background pattern */
+.chat-bg {
+    background-color: #080808;
+    background-image:
+        linear-gradient(rgba(201,168,76,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* Label tag */
+.field-label {
+    display: block;
+    margin-bottom: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(201,168,76,0.55);
+}
+
+/* Icon container */
+.icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.15);
+    color: #C9A84C;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.icon-wrap:hover {
+    background: rgba(201,168,76,0.14);
+    border-color: rgba(201,168,76,0.3);
+    box-shadow: 0 0 14px rgba(201,168,76,0.1);
+}
+.icon-wrap.active {
+    background: rgba(201,168,76,0.12);
+    border-color: rgba(201,168,76,0.35);
+    animation: gold-pulse-ring 2.5s ease infinite;
 }

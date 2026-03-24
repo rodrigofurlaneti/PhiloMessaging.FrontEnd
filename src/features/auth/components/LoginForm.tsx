@@ -1,7 +1,7 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../chat/context/AuthContext';
 import { Lock, ShieldCheck, Loader2, ArrowRight } from 'lucide-react';
-import PhoneInput, { parsePhoneNumber } from 'react-phone-number-input'; 
+import PhoneInput, { parsePhoneNumber } from 'react-phone-number-input';
 import { useTranslation } from 'react-i18next';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import 'react-phone-number-input/style.css';
@@ -18,7 +18,6 @@ export const LoginForm = ({ onToggleRegister }: LoginFormProps) => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (value && password) {
             const phoneNumberData = parsePhoneNumber(value);
             if (phoneNumberData) {
@@ -34,63 +33,95 @@ export const LoginForm = ({ onToggleRegister }: LoginFormProps) => {
     };
 
     return (
-        <div className="flex flex-col items-center w-full max-w-md animate-fade-in">
+        <div className="flex flex-col items-center w-full max-w-[420px]">
 
-            {/* Seletor de Idiomas */}
-            <LanguageSelector variant="horizontal" />
+            {/* Language selector */}
+            <div className="animate-fade-up mb-8 self-end">
+                <LanguageSelector variant="horizontal" />
+            </div>
 
-            {/* Header / Logo */}
-            <div className="mb-10 text-center">
-                <div className="inline-flex p-4 rounded-3xl bg-philo-primary/10 mb-4 border border-philo-primary/20">
-                    <ShieldCheck className="text-philo-primary" size={48} />
+            {/* Logo */}
+            <div className="animate-fade-up delay-50 text-center mb-10">
+                <div
+                    className="inline-flex items-center justify-center w-16 h-16 mb-5 rounded-2xl animate-float"
+                    style={{
+                        background: 'rgba(201,168,76,0.08)',
+                        border: '1px solid rgba(201,168,76,0.2)',
+                        boxShadow: '0 0 32px rgba(201,168,76,0.08)',
+                    }}
+                >
+                    <ShieldCheck size={30} style={{ color: '#C9A84C' }} strokeWidth={1.5} />
                 </div>
-                <h1 className="text-4xl font-black text-white tracking-tighter">
-                    Philo<span className="text-philo-primary">Messaging</span>
+
+                <h1
+                    className="font-cormorant text-5xl font-light tracking-wide mb-2"
+                    style={{ color: '#F5EDD8', letterSpacing: '0.04em' }}
+                >
+                    Philo<span style={{ color: '#C9A84C' }}>.</span>
                 </h1>
-                <p className="text-gray-500 text-sm font-medium uppercase tracking-[0.3em] mt-2">
+
+                <p className="font-mono-dm text-[10px] tracking-[0.22em] uppercase" style={{ color: 'rgba(201,168,76,0.5)' }}>
                     {t('auth.secure_gateway')}
                 </p>
             </div>
 
-            {/* Card Principal */}
-            <div className="w-full bg-philo-card p-10 rounded-[2.5rem] shadow-2xl border border-white/5 backdrop-blur-md">
-                <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Card */}
+            <div
+                className="animate-fade-up delay-100 w-full rounded-2xl p-8"
+                style={{
+                    background: 'rgba(13,13,13,0.9)',
+                    border: '1px solid rgba(201,168,76,0.1)',
+                    boxShadow: '0 24px 60px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(201,168,76,0.05)',
+                    backdropFilter: 'blur(20px)',
+                }}
+            >
+                <div className="flex items-center gap-3 mb-8">
+                    <div style={{ flex:1, height:'1px', background:'linear-gradient(90deg, rgba(201,168,76,0.2), transparent)' }}/>
+                    <span className="font-mono-dm text-[9px] tracking-[0.25em] uppercase" style={{ color:'rgba(201,168,76,0.4)' }}>
+                        Acesso Seguro
+                    </span>
+                    <div style={{ flex:1, height:'1px', background:'linear-gradient(270deg, rgba(201,168,76,0.2), transparent)' }}/>
+                </div>
 
-                    {/* Campo de Telefone */}
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-philo-primary uppercase tracking-widest ml-1">
-                            {t('auth.phone_label')}
-                        </label>
+                <form onSubmit={handleSubmit} className="space-y-5">
+
+                    <div className="animate-fade-up delay-150">
+                        <label className="field-label">{t('auth.phone_label')}</label>
                         <div className="philo-phone-container">
                             <PhoneInput
                                 placeholder={t('auth.phone_placeholder')}
                                 value={value}
                                 onChange={setValue}
                                 defaultCountry="BR"
-                                className="w-full flex items-center bg-philo-input rounded-2xl border border-transparent focus-within:border-philo-primary/40 transition-all duration-300 p-2"
                             />
                         </div>
                     </div>
 
-                    {/* Campo de Senha */}
-                    <div className="space-y-2">
-                        <div className="flex justify-between items-center px-1">
-                            <label className="text-[10px] font-bold text-philo-primary uppercase tracking-widest">
-                                {t('auth.password_label')}
-                            </label>
+                    <div className="animate-fade-up delay-200">
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="field-label" style={{ marginBottom:0 }}>{t('auth.password_label')}</label>
                             <button
                                 type="button"
-                                className="text-[9px] font-bold text-philo-primary/60 hover:text-philo-primary uppercase transition-colors"
+                                className="font-mono-dm text-[9px] tracking-wider uppercase transition-colors"
+                                style={{ color:'rgba(201,168,76,0.35)' }}
+                                onMouseEnter={e => (e.currentTarget.style.color='rgba(201,168,76,0.7)')}
+                                onMouseLeave={e => (e.currentTarget.style.color='rgba(201,168,76,0.35)')}
                             >
                                 {t('auth.forgot_password')}
                             </button>
                         </div>
-                        <div className="relative flex items-center bg-philo-input rounded-2xl border border-transparent focus-within:border-philo-primary/40 transition-all duration-300">
-                            <Lock className="ml-4 text-gray-500" size={18} />
+                        <div
+                            className="flex items-center"
+                            style={{ background:'#161616', border:'1px solid rgba(201,168,76,0.08)', borderRadius:'12px', transition:'border-color 0.25s' }}
+                            onFocusCapture={e => (e.currentTarget.style.borderColor='rgba(201,168,76,0.35)')}
+                            onBlurCapture={e  => (e.currentTarget.style.borderColor='rgba(201,168,76,0.08)')}
+                        >
+                            <Lock className="ml-4 shrink-0" size={15} style={{ color:'rgba(201,168,76,0.35)' }} />
                             <input
                                 type="password"
                                 placeholder="••••••••"
-                                className="w-full p-4 bg-transparent text-gray-200 placeholder:text-gray-600 outline-none"
+                                className="w-full px-3 py-4 font-mono-dm text-sm bg-transparent outline-none"
+                                style={{ color:'#F5EDD8', letterSpacing:'0.1em' }}
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
                                 required
@@ -98,39 +129,46 @@ export const LoginForm = ({ onToggleRegister }: LoginFormProps) => {
                         </div>
                     </div>
 
-                    {/* Botão de Autenticação */}
-                    <button
-                        type="submit"
-                        disabled={isLoading || !value}
-                        className="w-full bg-philo-primary hover:bg-philo-accent text-philo-bg font-black py-4 rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 shadow-xl shadow-philo-primary/20 active:scale-[0.98] mt-4 disabled:opacity-50"
-                    >
-                        {isLoading ? (
-                            <Loader2 className="animate-spin" size={20} />
-                        ) : (
-                            <>
-                                <span className="ml-2">{t('auth.btn_login')}</span>
-                                <ArrowRight size={18} />
-                            </>
-                        )}
-                    </button>
+                    <div className="animate-fade-up delay-250 pt-2">
+                        <button
+                            type="submit"
+                            disabled={isLoading || !value}
+                            className="btn-gold w-full flex items-center justify-center gap-3 py-4 rounded-xl text-[11px]"
+                        >
+                            {isLoading
+                                ? <Loader2 size={18} className="animate-spin" />
+                                : <>{t('auth.btn_login')}<ArrowRight size={15}/></>
+                            }
+                        </button>
+                    </div>
 
-                    {/* Alternar para Registro */}
-                    <button
-                        type="button"
-                        onClick={onToggleRegister}
-                        className="w-full text-[10px] font-bold text-gray-500 hover:text-philo-primary uppercase tracking-[0.2em] transition-colors mt-2"
-                    >
-                        {t('auth.switch_to_register')}
-                    </button>
+                    <div className="animate-fade-up delay-300 text-center pt-1">
+                        <button
+                            type="button"
+                            onClick={onToggleRegister}
+                            className="font-mono-dm text-[10px] tracking-[0.18em] uppercase transition-colors"
+                            style={{ color:'rgba(201,168,76,0.35)' }}
+                            onMouseEnter={e => (e.currentTarget.style.color='rgba(201,168,76,0.65)')}
+                            onMouseLeave={e => (e.currentTarget.style.color='rgba(201,168,76,0.35)')}
+                        >
+                            {t('auth.switch_to_register')}
+                        </button>
+                    </div>
 
-                    {/* Feedback de Erro */}
                     {error && (
-                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs text-center font-medium animate-pulse">
+                        <div
+                            className="animate-fade-up p-4 rounded-xl text-xs text-center font-mono-dm tracking-wide"
+                            style={{ background:'rgba(180,40,40,0.08)', border:'1px solid rgba(180,40,40,0.2)', color:'#e07070' }}
+                        >
                             {error}
                         </div>
                     )}
                 </form>
             </div>
+
+            <p className="animate-fade-up delay-400 mt-6 font-mono-dm text-[9px] tracking-[0.2em] uppercase text-center" style={{ color:'rgba(201,168,76,0.2)' }}>
+                End-to-end encrypted · Zero knowledge
+            </p>
         </div>
     );
 };

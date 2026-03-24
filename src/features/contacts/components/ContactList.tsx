@@ -1,50 +1,55 @@
-﻿import { useContacts } from '../hooks/useContacts';
+import { useContacts } from '../hooks/useContacts';
 import { ContactItem } from './ContactItem';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Users } from 'lucide-react';
 import { useChatStore } from '../../../store/useChatStore';
 
 export const ContactList = () => {
     const { contacts, isLoading } = useContacts();
-    const setSelectedContact = useChatStore((state) => state.setSelectedContact);
-    const selectedContactId = useChatStore((state) => state.selectedContact?.contactUserId);
+    const setSelectedContact = useChatStore(state => state.setSelectedContact);
+    const selectedContactId  = useChatStore(state => state.selectedContact?.contactUserId);
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center py-10 space-y-2 opacity-50">
-                <Loader2 className="animate-spin text-purple-500" size={24} />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                    Sincronizando contatos...
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 20px', gap: 12 }}>
+                <Loader2 size={20} className="animate-spin" style={{ color: '#C9A84C' }}/>
+                <span className="font-mono-dm" style={{ fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.3)' }}>
+                    Sincronizando
                 </span>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col gap-1 p-2 overflow-y-auto h-full bg-[#050505] scrollbar-thin scrollbar-thumb-white/5">
-            <div className="flex justify-between items-center px-3 mb-4">
-                <h3 className="text-[10px] font-black text-purple-500/60 uppercase tracking-[0.2em]">
-                    Contatos Identificados ({contacts.length})
-                </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {/* Section label */}
+            <div style={{ padding: '0 12px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ flex: 1, height: 1, background: 'rgba(201,168,76,0.07)' }}/>
+                <span className="font-mono-dm" style={{ fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.3)' }}>
+                    {contacts.length} contatos
+                </span>
+                <div style={{ flex: 1, height: 1, background: 'rgba(201,168,76,0.07)' }}/>
             </div>
 
             {contacts.length === 0 ? (
-                <div className="px-3 py-10 text-center">
-                    <p className="text-xs text-gray-600 italic">
-                        Sua rede Philo está vazia. <br /> Adicione alguém pelo telefone.
+                <div style={{ textAlign: 'center', padding: '40px 24px' }}>
+                    <Users size={28} style={{ color: 'rgba(201,168,76,0.1)', margin: '0 auto 12px' }}/>
+                    <p className="font-mono-dm" style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.2)', lineHeight: 1.8 }}>
+                        Rede vazia<br/>
+                        <span style={{ opacity: 0.7 }}>Adicione alguém pelo telefone</span>
                     </p>
                 </div>
             ) : (
-                contacts.map(contact => (
-                    <ContactItem
-                        key={contact.id}
-                        contact={contact}
-                        isActive={selectedContactId === contact.contactUserId}
-                        onSelect={() => {
-                            console.log("Selecionando contato para preview:", contact.displayName);
-                            setSelectedContact(contact); 
-                        }}
-                    />
-                ))
+                <div style={{ overflowY: 'auto', flex: 1 }}>
+                    {contacts.map((contact, i) => (
+                        <div key={contact.id} className="animate-slide-r" style={{ animationDelay: `${i * 0.04}s` }}>
+                            <ContactItem
+                                contact={contact}
+                                isActive={selectedContactId === contact.contactUserId}
+                                onSelect={() => setSelectedContact(contact)}
+                            />
+                        </div>
+                    ))}
+                </div>
             )}
         </div>
     );
