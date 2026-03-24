@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useContacts } from '../hooks/useContacts';
 import { UserPlus, X, Loader2 } from 'lucide-react';
 import PhoneInput, { parsePhoneNumber } from 'react-phone-number-input';
@@ -13,92 +13,135 @@ export const AddContactModal = ({ onClose }: { onClose: () => void }) => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (phoneValue) {
             const phoneNumberData = parsePhoneNumber(phoneValue);
             if (phoneNumberData) {
-                // Seguindo a lógica do seu Backend: Enviamos o número completo ou formatado
-                // Aqui enviamos a string formatada E.164 (ex: +5511995882509)
-                await addContact({
-                    phoneNumber: phoneValue,
-                    nickname: nickname || undefined
-                });
+                await addContact({ phoneNumber: phoneValue, nickname: nickname || undefined });
                 onClose();
             } else {
-                alert(t('auth.invalid_phone') || "Telefone inválido.");
+                alert(t('auth.invalid_phone') || 'Telefone inválido.');
             }
         }
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-            <div className="bg-[#121212] border border-white/5 p-8 rounded-[2rem] w-full max-w-md shadow-2xl shadow-purple-500/10">
-
-                {/* Header do Modal */}
-                <div className="flex justify-between items-center mb-8">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-purple-500/10 rounded-lg border border-purple-500/20 text-purple-400">
-                            <UserPlus size={20} />
+        <div
+            className="animate-fade-in"
+            style={{
+                position: 'fixed', inset: 0, zIndex: 50,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: 24,
+                background: 'rgba(0,0,0,0.7)',
+                backdropFilter: 'blur(12px)',
+            }}
+            onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+        >
+            <div
+                className="animate-scale-in"
+                style={{
+                    width: '100%', maxWidth: 400, borderRadius: 22,
+                    background: 'rgba(11,11,11,0.97)',
+                    border: '1px solid rgba(201,168,76,0.14)',
+                    boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(201,168,76,0.04) inset',
+                    padding: '28px 28px 24px',
+                }}
+            >
+                {/* Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{
+                            width: 40, height: 40, borderRadius: 12,
+                            background: 'rgba(201,168,76,0.08)',
+                            border: '1px solid rgba(201,168,76,0.18)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: '#C9A84C',
+                        }}>
+                            <UserPlus size={18}/>
                         </div>
-                        <h2 className="text-xl font-black text-white tracking-tight">
-                            {t('contacts.add_title') || 'Novo Contato'}
-                        </h2>
+                        <div>
+                            <h2 className="font-cormorant" style={{ fontSize: 22, fontWeight: 400, color: '#F5EDD8', letterSpacing: '0.04em' }}>
+                                {t('contacts.add_title') || 'Novo Contato'}
+                            </h2>
+                            <p className="font-mono-dm" style={{ fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.35)', marginTop: 2 }}>
+                                Adicionar à rede
+                            </p>
+                        </div>
                     </div>
-                    <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
-                        <X size={20} />
+                    <button
+                        onClick={onClose}
+                        style={{
+                            width: 30, height: 30, borderRadius: 8,
+                            background: 'rgba(255,255,255,0.04)',
+                            border: '1px solid rgba(255,255,255,0.06)',
+                            color: 'rgba(201,168,76,0.3)', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            transition: 'all 0.2s',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.color = '#C9A84C'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.25)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = 'rgba(201,168,76,0.3)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
+                    >
+                        <X size={14}/>
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Campo de Telefone (Padrão Philo) */}
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-purple-400 uppercase tracking-widest ml-1">
-                            {t('auth.phone_label') || 'Telefone'}
-                        </label>
+                {/* Divider */}
+                <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(201,168,76,0.1), transparent)', marginBottom: 22 }}/>
+
+                <form onSubmit={handleSubmit}>
+                    <div style={{ marginBottom: 16 }}>
+                        <label className="field-label">{t('auth.phone_label') || 'Telefone'}</label>
                         <div className="philo-phone-container">
                             <PhoneInput
-                                placeholder={t('auth.phone_placeholder') || 'Ex: +55 11 99999-9999'}
+                                placeholder={t('auth.phone_placeholder') || '+55 11 99999-9999'}
                                 value={phoneValue}
                                 onChange={setPhoneValue}
                                 defaultCountry="BR"
-                                className="w-full flex items-center bg-[#1a1a1a] rounded-2xl border border-transparent focus-within:border-purple-500/40 transition-all duration-300 p-2 text-gray-200"
                             />
                         </div>
                     </div>
 
-                    {/* Campo de Apelido */}
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-purple-400 uppercase tracking-widest ml-1">
-                            {t('contacts.nickname_label') || 'Apelido (Opcional)'}
-                        </label>
+                    <div style={{ marginBottom: 24 }}>
+                        <label className="field-label">{t('contacts.nickname_label') || 'Apelido (opcional)'}</label>
                         <input
                             type="text"
                             value={nickname}
-                            onChange={(e) => setNickname(e.target.value)}
-                            className="w-full p-4 bg-[#1a1a1a] border border-transparent focus:border-purple-500/40 text-gray-200 rounded-2xl outline-none transition-all placeholder:text-gray-600 text-sm"
+                            onChange={e => setNickname(e.target.value)}
                             placeholder="Ex: Rodrigo"
+                            className="input-luxury"
+                            style={{ fontFamily: 'DM Mono, monospace' }}
                         />
                     </div>
 
-                    {/* Ações */}
-                    <div className="flex gap-3 pt-4">
+                    {/* Actions */}
+                    <div style={{ display: 'flex', gap: 10 }}>
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 py-4 text-[11px] font-bold text-gray-500 hover:text-white uppercase tracking-widest transition-colors"
+                            style={{
+                                flex: 1, padding: '13px 0', borderRadius: 12, cursor: 'pointer',
+                                background: 'transparent',
+                                border: '1px solid rgba(201,168,76,0.1)',
+                                color: 'rgba(201,168,76,0.35)',
+                                fontFamily: 'DM Mono, monospace', fontSize: 10,
+                                letterSpacing: '0.15em', textTransform: 'uppercase',
+                                transition: 'all 0.2s',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.25)'; e.currentTarget.style.color = 'rgba(201,168,76,0.65)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.1)'; e.currentTarget.style.color = 'rgba(201,168,76,0.35)'; }}
                         >
                             {t('common.cancel') || 'Cancelar'}
                         </button>
+
                         <button
                             type="submit"
                             disabled={isLoading || !phoneValue}
-                            className="flex-1 py-4 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-purple-600/20 active:scale-95 flex items-center justify-center gap-2"
+                            className="btn-gold"
+                            style={{ flex: 1.8, padding: '13px 0', borderRadius: 12, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                         >
-                            {isLoading ? (
-                                <Loader2 className="animate-spin" size={18} />
-                            ) : (
-                                t('contacts.btn_add') || 'Adicionar'
-                            )}
+                            {isLoading
+                                ? <Loader2 size={15} className="animate-spin"/>
+                                : <><UserPlus size={13}/>{t('contacts.btn_add') || 'Adicionar'}</>
+                            }
                         </button>
                     </div>
                 </form>

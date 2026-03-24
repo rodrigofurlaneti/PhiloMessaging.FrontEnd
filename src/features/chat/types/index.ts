@@ -1,9 +1,8 @@
 ﻿export type ChatType = 'Private' | 'Group' | 'Broadcast';
-// Espelha o enum ChatType do Backend C#: Private=1, Group=2, Broadcast=3
 export const ChatTypeValues = {
-    Private: 1,
-    Group: 2,
-    Broadcast: 3,
+    Private: 0,
+    Group: 1,
+    Broadcast: 2
 } as const;
 export interface ChatDto {
     id: number;
@@ -41,19 +40,6 @@ export interface SendMessageSagaResult {
     isCompleted: boolean;
 }
 
-/**
- * Corpo da requisição para POST /api/v1/chats/{chatId}/messages
- * Espelha o SendMessageRequest do Backend.
- * MessageType: 1=Text, 2=Image, 3=Video, 4=Audio, 5=Sticker, 6=Document, 7=Location, 8=Contact, 9=Poll, 10=System
- */
-export interface SendMessageRequest {
-    type: number;
-    content?: string | null;
-    contentEncrypted?: boolean;
-    replyToId?: number | null;
-    forwardedFromId?: number | null;
-}
-
 export interface MessageDto {
     id: number;
     chatId: number;
@@ -66,17 +52,4 @@ export interface MessageDto {
     sentAt: string;
     editedAt: string | null;
     deletedForEveryone: boolean;
-}
-
-/** Mensagem otimista (criada localmente antes da confirmação do Backend) */
-export interface OptimisticMessage extends MessageDto {
-    isOptimistic: true;
-    isPending: boolean;
-    isFailed: boolean;
-}
-
-export type AnyMessage = MessageDto | OptimisticMessage;
-
-export function isOptimisticMessage(msg: AnyMessage): msg is OptimisticMessage {
-    return (msg as OptimisticMessage).isOptimistic === true;
 }
