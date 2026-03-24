@@ -1,29 +1,27 @@
 ﻿// src/features/chat/hooks/useMessages.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { chatApi } from '../api/chatApi';
 
 export const useMessages = (chatId: number | undefined) => {
     const [messages, setMessages] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
+    const fetchMessages = useCallback(async () => {
         if (!chatId) return;
-
-        const fetchMessages = async () => {
-            setIsLoading(true);
-            try {
-                // Aqui você usa o chatApi para buscar as mensagens
-                const data = await chatApi.getMessages(chatId);
-                setMessages(data);
-            } catch (error) {
-                console.error("Erro ao carregar mensagens:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchMessages();
+        setIsLoading(true);
+        try {
+            const data = await chatApi.getMessages(chatId);
+            setMessages(data);
+        } catch (error) {
+            console.error("Erro ao carregar mensagens:", error);
+        } finally {
+            setIsLoading(false);
+        }
     }, [chatId]);
 
-    return { messages, isLoading };
+    useEffect(() => {
+        fetchMessages();
+    }, [fetchMessages]);
+
+    return { messages, isLoading, refetch: fetchMessages };
 };

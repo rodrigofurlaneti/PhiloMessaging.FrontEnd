@@ -77,9 +77,9 @@ export const ChatShell = () => {
     const { t } = useTranslation();
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const { chats, isLoading, refetch } = useChatFeed();
+    const { chats, isLoading, refreshFeed } = useChatFeed();
     const { selectedContact, setSelectedContact, activeChat, setActiveChat } = useChatStore();
-    const currentChatId = (activeChat as any)?.chatId || (activeChat as any)?.id;
+    const currentChatId: number | undefined = (activeChat as any)?.chatId ?? (activeChat as any)?.id ?? undefined;
     const { messages, isLoading: messagesLoading, refetch: refetchMessages } = useMessages(currentChatId);
 
     const [isAddContactOpen, setIsAddContactOpen] = useState(false);
@@ -102,7 +102,7 @@ export const ChatShell = () => {
             await chatApi.sendMessageText(currentChatId, input);
             setInput('');
             if (refetchMessages) await refetchMessages();
-            if (refetch) refetch();
+            refreshFeed();
         } catch (error) {
             console.error("Erro ao enviar mensagem:", error);
         } finally {
@@ -122,7 +122,7 @@ export const ChatShell = () => {
             const chatId = (newChat as any).id || (newChat as any).chatId;
             if (chatId) {
                 await chatApi.sendMessageText(chatId, input);
-                if (refetch) await refetch();
+                await refreshFeed();
                 setInput('');
                 setSelectedContact(null);
                 setActiveChat(newChat);
@@ -410,7 +410,7 @@ export const ChatShell = () => {
                                         </div>
                                     ) : messages.length > 0 ? (
                                         messages.map((msg: any, i: number) => {
-                                            const isMine = String(msg.senderId) === String(user?.id);
+                                            const isMine = String(msg.senderId) === String(user?.userId);
                                             return (
                                                 <div
                                                     key={msg.id}
