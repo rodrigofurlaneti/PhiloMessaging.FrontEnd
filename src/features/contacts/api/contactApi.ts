@@ -8,7 +8,7 @@ export const contactApi = {
     removeContact: (contactUserId: number) =>
         api.delete(`/contacts/${contactUserId}`),
     blockContact: (contactUserId: number) =>
-        api.patch(`/contacts/block/${contactUserId}`),
+        api.patch(`/contacts/${contactUserId}/block`),
     updateNickname: (data: UpdateNicknameRequest) =>
         api.patch(`/contacts/${data.contactUserId}/nickname`, { newNickname: data.newNickname })
 };

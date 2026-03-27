@@ -23,5 +23,8 @@ export const chatApi = {
     getChatFeed: async (): Promise<ChatFeedItemDto[]> => {
         const response = await api.get<ChatFeedItemDto[]>('/chats/feed');
         return response.data;
+    },
+    joinViaLink: async (token: string): Promise<void> => {
+        await api.post(`/chats/join/${token}`);
     }
 };

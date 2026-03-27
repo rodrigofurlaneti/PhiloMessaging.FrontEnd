@@ -5,13 +5,16 @@ import { useMessages } from '../hooks/useMessages';
 import {
     LogOut, MessageSquare, Users, Settings, Search,
     Send, Paperclip, ShieldCheck, Loader2, UserPlus,
-    User as UserIcon
+    User as UserIcon, Phone, Radio
 } from 'lucide-react';
 import { useTranslation, Trans } from 'react-i18next';
 import { LanguageSelector } from '../../../components/ui/LanguageSelector';
 import { AddContactModal, ContactList } from '../../contacts';
 import { useChatStore } from '../../../store/useChatStore';
 import { chatApi } from '../api/chatApi';
+import { SettingsPanel } from '../../settings';
+import { CallHistoryPanel } from '../../calls';
+import { StatusPanel } from '../../status';
 
 export const ChatShell = () => {
     const { user, logout } = useAuth();
@@ -26,7 +29,7 @@ export const ChatShell = () => {
     const { messages, isLoading: messagesLoading, refetch: refetchMessages } = useMessages(currentChatId);
 
     const [isAddContactOpen, setIsAddContactOpen] = useState(false);
-    const [view, setView] = useState<'chats' | 'contacts'>('chats');
+    const [view, setView] = useState<'chats' | 'contacts' | 'calls' | 'status' | 'settings'>('chats');
     const [input, setInput] = useState('');
     const [isSending, setIsSending] = useState(false);
 
@@ -102,7 +105,24 @@ export const ChatShell = () => {
                 >
                     <Users size={24} />
                 </div>
-                <Settings className="text-gray-600 hover:text-white cursor-pointer transition-colors" size={24} />
+                <div
+                    onClick={() => setView('calls')}
+                    className={`p-3 rounded-2xl border cursor-pointer transition-all ${view === 'calls' ? 'bg-green-500/20 border-green-500/30 text-green-400' : 'border-transparent text-gray-600 hover:text-white'}`}
+                >
+                    <Phone size={24} />
+                </div>
+                <div
+                    onClick={() => setView('status')}
+                    className={`p-3 rounded-2xl border cursor-pointer transition-all ${view === 'status' ? 'bg-yellow-500/20 border-yellow-500/30 text-yellow-400' : 'border-transparent text-gray-600 hover:text-white'}`}
+                >
+                    <Radio size={24} />
+                </div>
+                <div
+                    onClick={() => setView('settings')}
+                    className={`p-3 rounded-2xl border cursor-pointer transition-all ${view === 'settings' ? 'bg-orange-500/20 border-orange-500/30 text-orange-400' : 'border-transparent text-gray-600 hover:text-white'}`}
+                >
+                    <Settings size={24} />
+                </div>
                 <div className="mt-auto flex flex-col items-center space-y-6">
                     <LanguageSelector variant="accordion" />
                     <button onClick={logout} className="p-3 text-gray-600 hover:text-red-500 transition-colors">
@@ -111,21 +131,43 @@ export const ChatShell = () => {
                 </div>
             </aside>
 
-            {/* Master Column (Lista de Chats) */}
+            {/* Master Column (Lista de Chats / Contacts / Calls / Status / Settings) */}
+            {view === 'settings' ? (
+                <section className="w-80 md:w-96 flex flex-col">
+                    <SettingsPanel onClose={() => setView('chats')} />
+                </section>
+            ) : (
             <section className="w-80 md:w-96 bg-black/10 border-r border-white/5 flex flex-col">
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className={`text-2xl font-black uppercase tracking-tighter ${view === 'contacts' ? 'text-purple-500' : 'text-white'}`}>
-                            {view === 'chats' ? 'Philo' : t('contacts.title')}
+                        <h2 className={`text-2xl font-black uppercase tracking-tighter ${
+                            view === 'contacts' ? 'text-purple-500' :
+                            view === 'calls' ? 'text-green-400' :
+                            view === 'status' ? 'text-yellow-400' :
+                            'text-white'
+                        }`}>
+                            {view === 'chats' ? 'Philo' :
+                             view === 'contacts' ? t('contacts.title') :
+                             view === 'calls' ? 'Chamadas' :
+                             view === 'status' ? 'Status' : 'Philo'}
                         </h2>
-                        <button onClick={() => setIsAddContactOpen(true)} className="p-2 bg-white/5 hover:bg-cyan-500/10 border border-white/10 rounded-xl text-cyan-500 transition-all active:scale-90">
-                            <UserPlus size={18} />
-                        </button>
+                        {view === 'chats' && (
+                            <button onClick={() => setIsAddContactOpen(true)} className="p-2 bg-white/5 hover:bg-cyan-500/10 border border-white/10 rounded-xl text-cyan-500 transition-all active:scale-90">
+                                <UserPlus size={18} />
+                            </button>
+                        )}
+                        {view === 'contacts' && (
+                            <button onClick={() => setIsAddContactOpen(true)} className="p-2 bg-white/5 hover:bg-cyan-500/10 border border-white/10 rounded-xl text-cyan-500 transition-all active:scale-90">
+                                <UserPlus size={18} />
+                            </button>
+                        )}
                     </div>
-                    <div className="relative flex items-center bg-white/5 rounded-2xl px-4 py-3 border border-transparent focus-within:border-cyan-500/30 transition-all">
-                        <Search className="text-gray-500" size={18} />
-                        <input type="text" className="bg-transparent ml-3 text-sm w-full outline-none" placeholder={t('chat.search_placeholder')} />
-                    </div>
+                    {(view === 'chats' || view === 'contacts') && (
+                        <div className="relative flex items-center bg-white/5 rounded-2xl px-4 py-3 border border-transparent focus-within:border-cyan-500/30 transition-all">
+                            <Search className="text-gray-500" size={18} />
+                            <input type="text" className="bg-transparent ml-3 text-sm w-full outline-none" placeholder={t('chat.search_placeholder')} />
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-3 space-y-2">
@@ -141,17 +183,29 @@ export const ChatShell = () => {
                                     >
                                         <div className="flex justify-between items-center">
                                             <h4 className={`font-bold text-sm transition-colors ${isActive ? 'text-cyan-400' : 'group-hover:text-cyan-400'}`}>{chat.chatName}</h4>
-                                            <span className="text-[10px] text-gray-600">12:45</span>
+                                            <span className="text-[10px] text-gray-600">
+                                                {chat.lastMessageSentAt ? new Date(chat.lastMessageSentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                                            </span>
                                         </div>
                                         <p className="text-xs text-gray-500 truncate">{chat.lastMessageContent || '...'}</p>
+                                        {chat.unreadCount > 0 && (
+                                            <span className="inline-block mt-1 px-2 py-0.5 text-[9px] bg-cyan-500 text-black rounded-full font-bold">
+                                                {chat.unreadCount}
+                                            </span>
+                                        )}
                                     </div>
                                 )
                             })
-                    ) : (
+                    ) : view === 'contacts' ? (
                         <ContactList />
-                    )}
+                    ) : view === 'calls' ? (
+                        <CallHistoryPanel />
+                    ) : view === 'status' ? (
+                        <StatusPanel />
+                    ) : null}
                 </div>
             </section>
+            )}
 
             {/* Detail Column (Centro - Mensagens) */}
             <main className="flex-1 flex flex-col bg-[#080808] relative">
