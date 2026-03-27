@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Eye, Loader2, Image, Type } from 'lucide-react';
+﻿import { useState } from 'react';
+import { Plus, Eye, Loader2 } from 'lucide-react';
 import { useStatus } from '../hooks/useStatus';
 import { statusApi } from '../api/statusApi';
 import type { CreateStatusRequest } from '../types';

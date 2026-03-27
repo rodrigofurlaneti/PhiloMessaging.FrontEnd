@@ -1,7 +1,6 @@
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+﻿import { useState } from 'react';
 import {
-  User, Shield, Smartphone, Bell, Eye, ChevronRight,
+  User, Shield, Smartphone, Bell, ChevronRight,
   Loader2, Trash2, Save, X
 } from 'lucide-react';
 import { useProfile } from '../../users/hooks/useProfile';
@@ -9,7 +8,6 @@ import { useDevices } from '../../devices/hooks/useDevices';
 import { usePrivacy } from '../../privacy/hooks/usePrivacy';
 import { useNotifications } from '../../notifications/hooks/useNotifications';
 import { usersApi } from '../../users/api/usersApi';
-import { privacyApi } from '../../privacy/api/privacyApi';
 import type { UpdatePrivacySettingsRequest } from '../../privacy/types';
 
 type SettingsTab = 'profile' | 'privacy' | 'devices' | 'notifications';
@@ -19,7 +17,6 @@ interface SettingsPanelProps {
 }
 
 export const SettingsPanel = ({ onClose }: SettingsPanelProps) => {
-  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
 
   const { profile, isLoading: profileLoading, refetch: refetchProfile } = useProfile();
